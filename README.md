@@ -8,11 +8,12 @@ A structured method for designing and building fullstack apps — from a hand-dr
 
 ## What it is
 
-VECTOR is a 13-step process organized in three phases:
+VECTOR is a 15-step process organized in four phases:
 
-- **Design** (Steps 1–9.5) — guided by Claude Desktop with MCP filesystem access
-- **Build** (Steps 10–13) — executed by Claude Code with structured commands
-- **Test** — human-in-the-loop at every gate and at the end of each phase
+- **Design** (Steps 1–8) — guided by Claude.ai with MCP filesystem access
+- **Plan & Freeze** (Steps 9–10) — development plan, context synthesis, and design freeze
+- **Handover** (Steps 11–12) — GitHub issues, Gantt chart, repo preparation for Claude Code
+- **Build & Test** (Steps 13–15) — executed by Claude Code with structured commands
 
 The method enforces a strict separation between design and execution. Claude Code never makes architectural decisions. The human never writes a spec from scratch.
 
@@ -31,7 +32,7 @@ VECTOR is stack-agnostic by design. The reference implementation targets:
 
 ## Requirements
 
-- Claude Desktop with an active Pro or Team plan
+- Claude.ai with an active Pro or Team plan
 - Claude Code
 - Node.js (any recent version)
 - A GitHub account
@@ -48,7 +49,7 @@ git clone https://github.com/fedeglan/vector.git
 
 ### 2. Create the Claude Project
 
-1. Open Claude Desktop → **Projects** → **New Project**
+1. Open Claude.ai → **Projects** → **New Project**
 2. Name it: `VECTOR`
 3. Open **Project Settings** → **Custom Instructions**
 4. Paste the full contents of `src/setup/SYSTEM_PROMPT.md`
@@ -56,7 +57,7 @@ git clone https://github.com/fedeglan/vector.git
 
 ### 3. Run setup
 
-Open the **VECTOR** Project in Claude Desktop and type:
+Open the **VECTOR** Project in Claude.ai and type:
 
 ```
 /setup
@@ -95,12 +96,14 @@ vector/
 ├── src/
 │   ├── commands/              ← Claude Code commands (copied into each project)
 │   │   ├── audit-plan.md
+│   │   ├── bootstrap-github.md
 │   │   ├── change-scope.md
-│   │   ├── development-plan.md
+│   │   ├── debug.md
 │   │   ├── review-pr.md
 │   │   ├── ship-issue.md
-│   │   └── solve-issue.md
-│   └── setup/                 ← Claude Desktop setup (not copied into projects)
+│   │   ├── solve-issue.md
+│   │   └── system-up.md
+│   └── setup/                 ← Claude.ai setup (not copied into projects)
 │       ├── SYSTEM_PROMPT.md   ← goes into Claude Project custom instructions
 │       ├── setup.md           ← run once to configure MCPs
 │       ├── new-project.md     ← creates a new project
@@ -129,6 +132,42 @@ vector/
 ├── .gitignore
 └── LICENSE
 ```
+
+After completing all design steps, the project will also contain:
+
+```
+<project>/
+├── CLAUDE.md               ← the law for Claude Code
+├── CONTEXT.md              ← project bible with design freeze marker
+├── SESSIONS.md             ← session-by-session traceability
+├── docs/
+│   ├── PRD.md
+│   ├── views.md
+│   ├── api-spec.yaml
+│   ├── api-frontend-reference.docx
+│   ├── data-model.md
+│   ├── erd.dbml
+│   ├── architecture.md
+│   ├── DEVELOPMENT_PLAN.md
+│   ├── GITHUB_ISSUES.md
+│   └── project-gantt.html
+...
+```
+
+---
+
+## Commands (Claude Code)
+
+| Command | What it does |
+|---|---|
+| `/bootstrap-github` | Create GitHub Project with all issues, labels, milestones, and dates |
+| `/ship-issue` | Full gitflow: branch → implement → review → PR → merge → cleanup → log |
+| `/solve-issue` | Implement a specific issue with debugging guidance |
+| `/review-pr` | Review a PR against all specs |
+| `/audit-plan` | Audit codebase against the development plan |
+| `/debug` | Analyze and fix broken things |
+| `/system-up` | Start full system with test credentials and instructions |
+| `/change-scope` | Request a design change after the freeze |
 
 ---
 

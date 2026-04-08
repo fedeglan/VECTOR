@@ -28,14 +28,14 @@ Check for the presence of files using the artefact map:
 | docs/PRD.md | Step 2 complete |
 | docs/views.md | Step 3 complete |
 | /frontend/src/ has component files | Step 4 complete |
-| docs/api-spec.yaml | Step 5 complete |
+| docs/api-spec.yaml + docs/api-frontend-reference.docx | Step 5 complete |
 | docs/data-model.md + docs/erd.dbml | Step 6 complete |
 | docs/research/msd_*.md (at least one) | Step 7 complete |
 | docs/architecture.md | Step 8 complete |
-| CLAUDE.md at root | Step 9 complete |
-| CLAUDE.md contains "DESIGN FREEZE: YES" | Step 9.5 complete |
-| docs/DEVELOPMENT_PLAN.md | Step 10 complete |
-| docs/github_issues.md | Step 11 complete |
+| docs/DEVELOPMENT_PLAN.md | Step 9 complete |
+| CONTEXT.md contains "DESIGN FREEZE: YES" | Step 10 complete |
+| docs/GITHUB_ISSUES.md + docs/project-gantt.html | Step 11 complete |
+| CLAUDE.md + SESSIONS.md at root | Step 12 complete |
 
 ### 3. Load only what the current step needs
 Read only the files listed in the `Reads:` field of the current step in the system prompt. Do not read anything else.

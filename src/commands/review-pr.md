@@ -8,7 +8,7 @@ Read these files in full:
 - CLAUDE.md — the law. Any violation is an automatic blocker.
 - CONTEXT.md — supplementary context.
 - The PR diff in full.
-- The issue the PR is closing.
+- The issue the PR is closing (from docs/GITHUB_ISSUES.md).
 - The relevant spec file(s) based on what the PR touches.
 
 ## Review checklist — check every item

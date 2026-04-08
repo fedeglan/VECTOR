@@ -17,14 +17,14 @@ The human thinks visually. Everything else derives from what the human can see a
 | Actor | Role |
 |---|---|
 | **You** | Think, draw, decide, validate, approve |
-| **Claude.ai** | Ask, structure, generate, derive |
-| **Claude Code** | Plan, build, audit |
+| **Claude.ai** | Ask, structure, generate, derive, plan |
+| **Claude Code** | Build, audit, ship |
 
 > Never mix roles in the same session.
 
 ---
 
-## The 13 Steps
+## The 15 Steps
 
 ```
 HIGH HUMAN INVOLVEMENT
@@ -38,22 +38,25 @@ AI DOES THE WORK · HUMAN REVIEWS
   Step 6  · Data Model Generation             (DMG)
   Step 7  · Quant Model Dev Specifications    (QMDS)  [if applicable]
   Step 8  · Architecture Design Documentation (ADD)
-  Step 9  · Context Document Generation       (CDG)
-  Step 9.5· Design Freeze                     (DF)
+  Step 9  · Development Plan                  (DP)
+  Step 10 · Context Generation & Design Freeze(CGDF)
+
+HANDOVER
+  Step 11 · GitHub-ification                  (GHI)
+  Step 12 · Handover Preparation              (HP)
 
 CLAUDE CODE TAKES OVER
-  Step 10 · Development Plan                  (DP)
-  Step 11 · GitHub-ification                  (GHI)
-  Step 12 · AI Development with Human-in-Loop (AIDH)
-  Step 13 · Human Intensive Testing           (HIT)
+  Step 13 · GitHub Project Bootstrap          (GPB)
+  Step 14 · AI Development with Human-in-Loop (AIDH)
+  Step 15 · Human Intensive Testing           (HIT)
 ```
 
 ---
 
 ## Step 1 — Basic Idea Visualization (BIV)
 
-**Who:** You alone  
-**Time:** 30–60 min  
+**Who:** You alone
+**Time:** 30–60 min
 **Tools:** Any drawing tool — Excalidraw, Figma, paper + camera, napkin + phone
 
 Draw 4–6 sketches of how you imagine the app. These are not mockups. They are externalizations of what is in your head.
@@ -73,8 +76,8 @@ Draw 4–6 sketches of how you imagine the app. These are not mockups. They are 
 
 ## Step 2 — Assisted Product Requirements Writing (APRW)
 
-**Who:** You + Claude.ai  
-**Time:** 30–60 min  
+**Who:** You + Claude.ai
+**Time:** 30–60 min
 **Tools:** Claude.ai (new session)
 
 Upload the sketches and the description. Claude reviews everything and asks a structured set of questions — no more, no less — to fully understand what you want to build.
@@ -84,22 +87,22 @@ Upload the sketches and the description. Claude reviews everything and asks a st
 Claude asks these questions in plain, non-technical language. Each question is designed so that someone with no technical background can answer it in 2–3 sentences. If a sketch or the description already answers one clearly, Claude skips it.
 
 **What it does**
-1. If you had to explain this app to a friend over coffee in one sentence, what would you say? *(Clarifies the core purpose without jargon)*
-2. Who is going to use this? Paint me a quick picture of that person — what do they do, and why would they open this app? *(Identifies the primary user and their motivation)*
-3. Will there be different types of users who see different things or can do different things? For example, an admin vs. a regular user. *(Detects multi-role requirements)*
+1. If you had to explain this app to a friend over coffee in one sentence, what would you say?
+2. Who is going to use this? Paint me a quick picture of that person — what do they do, and why would they open this app?
+3. Will there be different types of users who see different things or can do different things? For example, an admin vs. a regular user.
 
 **What matters most**
-4. If you could only build three things for the first version, what would they be? *(Defines MVP scope)*
-5. What are you deliberately leaving out for now — things that might be useful later but that you don't need on day one? *(Defines explicit out-of-scope)*
+4. If you could only build three things for the first version, what would they be?
+5. What are you deliberately leaving out for now — things that might be useful later but that you don't need on day one?
 
 **How it works behind the scenes**
-6. Does each user have their own private data, or does everyone see the same information? *(Determines data isolation requirements)*
-7. Does the app do any kind of calculation, scoring, ranking, or automatic decision-making — or does it mostly just save and display information? *(Detects non-CRUD logic)*
-8. Does this app need to talk to any outside service? For example, pull data from somewhere, send emails, or connect to a payment system. *(Identifies external integrations)*
+6. Does each user have their own private data, or does everyone see the same information?
+7. Does the app do any kind of calculation, scoring, ranking, or automatic decision-making — or does it mostly just save and display information?
+8. Does this app need to talk to any outside service? For example, pull data from somewhere, send emails, or connect to a payment system.
 
 **Look, feel, and limits**
-9. Are there any hard rules about how this must work — for example, users must log in with Google, it must run in a specific country, or certain data can never leave a particular server? *(Surfaces non-negotiable constraints)*
-10. Do you have a visual reference — a color palette, a font, another app whose look you like? If not, how would you describe the feeling you want: minimal, bold, corporate, playful? *(Captures aesthetic direction)*
+9. Are there any hard rules about how this must work — for example, users must log in with Google, it must run in a specific country, or certain data can never leave a particular server?
+10. Do you have a visual reference — a color palette, a font, another app whose look you like? If not, how would you describe the feeling you want: minimal, bold, corporate, playful?
 
 After receiving answers, Claude writes the PRD.
 
@@ -126,8 +129,8 @@ After receiving answers, Claude writes the PRD.
 
 ## Step 3 — AI Frontend Sketching Proposal (AFSP)
 
-**Who:** Claude.ai (same session as Step 2)  
-**Time:** 30–45 min  
+**Who:** Claude.ai (same session as Step 2)
+**Time:** 30–45 min
 **Tools:** Claude.ai → visual tool of choice for editing
 
 Based on the PRD, Claude produces a complete frontend proposal. The human does not write anything here — only reviews and edits visually.
@@ -170,8 +173,8 @@ Iterate until the views represent what you want to build at ~90% fidelity.
 
 ## Step 4 — Frontend Skeleton De-codification (FSD)
 
-**Who:** Claude.ai  
-**Time:** 1–2 hrs  
+**Who:** Claude.ai
+**Time:** 1–2 hrs
 **Tools:** Claude.ai (same session)
 
 Claude takes the approved views (images or exports from Step 3) and converts each one to React + Tailwind. All backend data is mocked. The output is a fully navigable frontend.
@@ -197,7 +200,7 @@ Run the frontend locally. Navigate through every view. Iterate with Claude until
 
 ## Step 5 — API Contract Generation (ACG)
 
-**Who:** Claude.ai  
+**Who:** Claude.ai
 **Time:** 30–45 min
 
 Claude reads the React components and mock data from Step 4 and derives the full API contract.
@@ -210,13 +213,22 @@ Claude reads the React components and mock data from Step 4 and derives the full
 
 **Output B:** A human-readable summary in markdown — one table per endpoint group, written for understanding, not implementation.
 
+**Output C:** `docs/api-frontend-reference.docx` — a Word document that maps every page and every UI action to the exact API endpoint it calls. For each view:
+- A screenshot of the view (from Step 4 artifacts)
+- A table with columns: Action, Interaction Type (button/tab/link/background action/toggle/form), HTTP Method, Endpoint Path, Notes
+- Interaction types include: button, tab, link, background action (fires automatically — page load, poll, auto-refresh), toggle, row, panel, form
+- Includes a legend explaining all interaction types and HTTP methods
+- All endpoints prefixed with `/api/v1`
+
+This document serves as the definitive reference connecting what the user sees to what the backend must serve. Every UI action must map to an endpoint and vice versa.
+
 **Gate:** Human reviews and approves. Iterate until correct.
 
 ---
 
 ## Step 6 — Data Model Generation (DMG)
 
-**Who:** Claude.ai  
+**Who:** Claude.ai
 **Time:** 30–45 min
 
 Claude derives the data model from the API contract.
@@ -236,8 +248,8 @@ Claude derives the data model from the API contract.
 
 ## Step 7 — Quantitative Model Dev Specifications (QMDS)
 
-**Who:** You + Claude.ai  
-**Time:** Variable (30–90 min per model)  
+**Who:** You + Claude.ai
+**Time:** Variable (30–90 min per model)
 **Skip if:** The app has no non-CRUD logic
 
 For each quantitative model, Claude runs an assisted process to produce a Model Specification Document (MSD). The process has two paths depending on how well-defined the model is.
@@ -249,10 +261,10 @@ For each quantitative model, Claude runs an assisted process to produce a Model 
 The human already knows the logic, the inputs, and the expected output. Claude asks four questions and drafts the MSD directly.
 
 **Claude asks:**
-1. What does this model produce, and who or what uses that output? *(e.g. "a score between 0 and 1 for each asset, consumed by the portfolio construction module")*
-2. What raw data does it need, and where does that data come from? *(e.g. "daily adjusted close prices from Yahoo Finance, going back 12 months")*
-3. Walk me through the logic step by step, as if explaining to a smart person who is not a mathematician. *(The human describes the calculation in plain language — Claude will formalize it into math)*
-4. Are there any academic papers, existing implementations, or prior work this is based on? *(Anchors parameter choices and methodology)*
+1. What does this model produce, and who or what uses that output?
+2. What raw data does it need, and where does that data come from?
+3. Walk me through the logic step by step, as if explaining to a smart person who is not a mathematician.
+4. Are there any academic papers, existing implementations, or prior work this is based on?
 
 Claude then produces the full MSD.
 
@@ -264,9 +276,9 @@ The human has a goal but is not sure how to achieve it. Claude runs a structured
 
 **Stage 1 — Goal clarification**
 Claude asks:
-1. What decision or action should this model make easier or better? *(The human describes the business problem, not the solution)*
-2. What information do you have available that could be relevant to that decision? *(Raw inputs — the human lists what data exists)*
-3. What would a good output look like? How would you use it? *(Forces the human to describe the desired output concretely)*
+1. What decision or action should this model make easier or better?
+2. What information do you have available that could be relevant to that decision?
+3. What would a good output look like? How would you use it?
 
 **Stage 2 — Approach proposal**
 Based on the answers, Claude proposes 2–3 concrete methodological approaches. For each it explains:
@@ -303,15 +315,12 @@ Claude asks the same four questions as Path A, now that the approach is clear, a
 
 ## Known failure modes
 - Conditions under which the model produces unreliable output
-  (e.g. very small universe, all-identical inputs, extreme market regimes)
 
 ## Validation tests
 - Mathematical properties to verify (range, monotonicity, distribution)
 - Lookahead bias check
 - Benchmark: does it produce sensible rankings on historical data?
 ```
-
-> Note: edge cases are not asked upfront. They emerge from the mathematical specification and are documented by Claude as *known failure modes* based on the model's structure — not from the human's intuition at design time.
 
 **Output:** `docs/research/msd_<model>.md` + `research/<model>.ipynb` skeleton
 
@@ -321,7 +330,7 @@ Claude asks the same four questions as Path A, now that the approach is clear, a
 
 ## Step 8 — Architecture Design Documentation (ADD)
 
-**Who:** Claude.ai  
+**Who:** Claude.ai
 **Time:** 30–45 min
 
 Claude designs the full system architecture from all prior documents.
@@ -353,62 +362,21 @@ Date: YYYY-MM-DD
 
 ---
 
-## Step 9 — Context Document Generation (CDG)
+## Step 9 — Development Plan (DP)
 
-**Who:** Claude.ai  
-**Time:** 20–30 min
+**Who:** Claude.ai
+**Time:** 1–2 hrs
 
-Claude synthesizes all prior documents into a single instruction file for Claude Code.
-
-**Output:** `CLAUDE.md` (repo root)
-
-### CLAUDE.md must include
-- App description (2–3 sentences)
-- Stack with exact versions (Python, FastAPI, React, Tailwind, PostgreSQL, etc.)
-- Folder structure (copy from Step 8)
-- Naming conventions (files, functions, variables, DB tables)
-- Code style and aesthetic preferences
-- Mandatory and forbidden patterns (copy from Step 8)
-- How to run the app locally
-- How to run migrations
-- How to run tests
-
-**Gate:** Human reviews and approves.
-
----
-
-## Step 9.5 — Design Freeze (DF)
-
-**Who:** You  
-**Time:** 5 min
-
-Before touching Claude Code, you formally declare the design closed.
-
-**Checklist:**
-- [ ] PRD approved
-- [ ] All views approved at ~90% fidelity
-- [ ] API contract approved
-- [ ] ERD approved
-- [ ] All MSDs approved (if applicable)
-- [ ] Architecture approved
-- [ ] CLAUDE.md approved
-
-**Rule:** No scope changes after this point without returning to the relevant step, regenerating the affected documents, and updating CLAUDE.md. The code and the design must always be in sync.
-
----
-
-## Step 10 — Development Plan (DP)
-
-**Who:** Claude Code  
-**Time:** 30–60 min
-
-Place all docs in `/docs` and `CLAUDE.md` in the repo root. Open Claude Code and ask it to produce a detailed development plan.
+Claude reads all prior documents and produces a detailed, task-by-task development plan. This is the bridge between design and implementation — it must be precise enough for a coding agent to pick up any task and execute it without ambiguity.
 
 The plan must:
 - Be task-by-task, not phase-by-phase
 - Follow dependency order: DB → Backend → Quant layer → Frontend → Integration
 - Have explicit phases (MVP, V1, V2) so a working version always exists
 - Each phase must be independently deployable
+- Include scheduling with start dates, ETAs, model assignment (Haiku/Sonnet/Opus), and complexity assessment
+- Include a build order summary showing the day-by-day execution sequence
+- Include verification checklists mapping every ERD table, API endpoint, and MSD to tasks
 
 **Output:** `docs/DEVELOPMENT_PLAN.md`
 
@@ -416,92 +384,280 @@ The plan must:
 
 ---
 
-## Step 11 — GitHub-ification (GHI)
+## Step 10 — Context Generation & Design Freeze (CGDF)
 
-**Who:** Claude Code  
+**Who:** Claude.ai
 **Time:** 30–45 min
 
-Claude Code creates all GitHub issues from the development plan and sets up GitHub Projects for tracking.
+Claude synthesizes all prior documents into the context files needed for Claude Code, then runs the design freeze checklist.
 
-**Structure:**
-- One issue per task
-- Issues labeled by phase (MVP, V1, V2) and type (feat, fix, chore, docs)
-- Milestone per phase
-- GitHub Project board with columns: Backlog · In Progress · In Review · Done
+### Part A — Context Documents
 
-**Gate:** Human reviews the issue list and approves before any coding begins.
+**Output A:** `CONTEXT.md` (repo root) — everything Claude Code needs to understand the project holistically:
+- App description (2–3 sentences)
+- Stack with exact versions (Python, FastAPI, React, Tailwind, PostgreSQL, etc.)
+- Summary of the development plan (phases, milestones, key dependencies)
+- Summary of each MSD (model name, input, output, location of full spec)
+- Summary of each ADR decision
+- External integrations and their credentials format
+- Known failure modes across all quant models
+- Link map: which docs/research file corresponds to which backend module
+- Reference to SESSIONS.md for session-by-session traceability
+
+### Part B — Design Freeze
+
+Present this checklist and ask the human to confirm each item:
+- [ ] PRD approved
+- [ ] All views approved at ~90% fidelity
+- [ ] API contract approved
+- [ ] API-frontend reference approved
+- [ ] ERD approved
+- [ ] All MSDs approved (if applicable)
+- [ ] Architecture approved
+- [ ] Development plan approved
+- [ ] CONTEXT.md approved
+
+When all items confirmed, append to CONTEXT.md:
+```
+DESIGN FREEZE: YES — <date>
+```
+
+**Rule:** No scope changes after this point without returning to the relevant step, regenerating the affected documents, and updating CONTEXT.md. The code and the design must always be in sync.
+
+**Gate:** Human approves CONTEXT.md and confirms the design freeze.
 
 ---
 
-## Step 12 — AI Development with Human-in-the-Loop (AIDH)
+## Step 11 — GitHub-ification (GHI)
 
-**Who:** Claude Code (two sessions) + You  
+**Who:** Claude.ai
+**Time:** 1–2 hrs
+
+Claude transforms the development plan into GitHub-ready issues and a visual Gantt chart.
+
+### Output A: `docs/GITHUB_ISSUES.md`
+
+A single document containing every issue in execution order. Each task with N prompts in the development plan produces exactly N issues. Issues are numbered as `T<TASK>I<ORDINAL>` (e.g., `T001I1`, `T019I3`).
+
+Each issue must be fully self-contained — the issue text IS the agent prompt. The agent reads the issue, implements it, and produces a correct result without needing to open any other file.
+
+Per-issue format:
+```markdown
+---
+
+## T<NNN>I<N>: <action verb> <what>
+
+**Task**: TASK-<NNN> (<task title>) — Issue <N> of <total>
+**Labels**: `phase:<phase>`, `type:<type>`, `model:<model>`, `complexity:<low|medium|high>`
+**Depends on**: T<NNN>I<N>
+**Start date**: <YYYY-MM-DD>
+**End date**: <YYYY-MM-DD>
+**ETA**: <time>
+
+### What to do
+<Direct instruction to the agent>
+
+### Context — read before implementing
+<Inline all relevant specs, patterns, conventions>
+
+### Specification
+<DBML, OpenAPI, MSD fragments inlined>
+
+### Patterns
+- ✅ <mandatory>
+- ❌ <forbidden>
+
+### Acceptance criteria
+- [ ] <testable criterion>
+
+### What NOT to do in this issue
+<Out of scope items>
+```
+
+### Output B: `docs/project-gantt.html`
+
+A self-contained HTML file with an interactive Gantt chart visualization. Features:
+- Plotly.js-based timeline with task bars
+- Color coding by category (Infrastructure, Models, Repositories, Services, Routers, Quant, Frontend, Tests)
+- Toggle buttons: color by Category/Model/Complexity
+- Phase filter buttons: All/MVP/V1/V2
+- Summary stats: task count per phase, agent hours, review hours
+- Hover tooltips with full task details (ETA, model, complexity, dependencies, files)
+- Milestone markers (MVP complete, V1 complete, V2 complete)
+- Dark theme, DM Sans font
+
+**Gate:** Human reviews the issue list and Gantt chart before proceeding.
+
+---
+
+## Step 12 — Handover Preparation (HP)
+
+**Who:** Claude.ai
+**Time:** 30–45 min
+
+Claude prepares the repository so Claude Code can start working immediately from Issue #1. This is the bridge between design and execution.
+
+### What Claude produces
+
+**A. `CLAUDE.md` (repo root)** — the law for Claude Code:
+- App description (2–3 sentences)
+- Stack with exact versions
+- Folder structure
+- Naming conventions (files, functions, variables, DB tables)
+- Code style and aesthetic preferences
+- Mandatory and forbidden patterns (from architecture.md)
+- How to run the app locally
+- How to run migrations
+- How to run tests
+- Git workflow: branch naming (`feat/TXXX-short-desc`), commit message format, PR conventions
+- Reference to CONTEXT.md for project understanding
+- Reference to SESSIONS.md for session traceability
+
+**B. Verify folder structure** — confirm the project scaffold matches architecture.md. If any directories are missing, list them for the human to create.
+
+**C. Starter files** — any boilerplate files needed for Issue #1 to start cleanly:
+- `.env.example` with all required environment variables
+- `requirements.txt` or `pyproject.toml` with pinned dependencies
+- `package.json` with frontend dependencies
+- `docker-compose.yml` skeleton
+- `Makefile` or scripts for common commands
+- `SESSIONS.md` initialized with header and format template
+
+**D. `SESSIONS.md` (repo root)** — initialized with the format template:
+```markdown
+# Sessions Log
+
+## Format
+Each session entry records:
+- Session number and date
+- Issues completed (with PR links)
+- Issues attempted but blocked
+- Key decisions made
+- State of the system at session end
+- Next session should start with
+
+---
+
+## Session 1 — <date>
+(to be filled by Claude Code)
+```
+
+**Gate:** Human verifies that the repo is ready. Claude Code should be able to `cd` into the project, read CLAUDE.md + CONTEXT.md + SESSIONS.md, and start on Issue #1 with zero setup friction.
+
+---
+
+## Step 13 — GitHub Project Bootstrap (GPB)
+
+**Who:** Claude Code
+**Time:** 30–45 min
+
+The first thing Claude Code does when it takes over. Run `/bootstrap-github` to convert the issues document into a live GitHub project.
+
+### What Claude Code does
+
+1. Read `docs/GITHUB_ISSUES.md`
+2. Create a GitHub Project board for the repo
+3. For each issue in the document, create a GitHub issue with:
+   - Title: exact issue title from the document
+   - Body: full issue content (the agent prompt)
+   - Labels: `phase:<phase>`, `type:<type>`, `model:<model>`, `complexity:<level>`
+   - Start date and end date (so the GitHub Gantt/timeline view is populated)
+4. Create milestones: MVP, V1, V2 — assign issues to the correct milestone
+5. Verify: all issues created, all labels applied, all dates set, project board visible
+
+**Output:** A GitHub Project with all tasks loaded, dated, labeled, and ready to be worked through sequentially.
+
+**Gate:** Human verifies the GitHub Project board is correct.
+
+---
+
+## Step 14 — AI Development with Human-in-the-Loop (AIDH)
+
+**Who:** Claude Code + You
 **Tools:** Claude Code · GitHub · GitHub Projects
 
-This is the core development loop. One issue at a time.
+This is the core development loop. One issue at a time, with full gitflow and session traceability.
 
-### Per-issue cycle
+### Per-issue cycle via `/ship-issue`
 
 ```
-Human assigns issue to Claude Code (Coder session)
+Claude Code reads CLAUDE.md + CONTEXT.md + SESSIONS.md
       ↓
-Coder implements the issue and opens a PR
+Creates branch from DEV: feat/TXXX-short-desc
       ↓
-Claude Code (Reviewer session) reviews the PR
-  · Checks against CLAUDE.md patterns
-  · Checks against the relevant spec (API contract, ERD, MSD)
-  · Requests changes or approves
+Implements the issue (runs /solve-issue)
+      ↓
+Self-reviews the PR (runs /review-pr)
+      ↓
+Opens PR targeting DEV branch
       ↓
 Human reviews the PR
   · Visual check if frontend
   · Logic check if backend or quant
   · Requests changes or approves
       ↓
-Human merges to DEV branch
+Merge to DEV
+      ↓
+Mark issue as done, link PR to issue
+      ↓
+Delete branch, checkout DEV
+      ↓
+Log session in SESSIONS.md
       ↓
 Next issue
 ```
 
-### Coder session system prompt
-```
-You are a senior engineer implementing a specific GitHub issue.
-Read CLAUDE.md before writing any code.
-Follow all mandatory patterns. Never violate forbidden patterns.
-Open a PR when done. Do not touch files outside the scope of this issue.
+### Session traceability
+
+At the end of each coding session (or batch of issues), Claude Code appends an entry to `SESSIONS.md`:
+
+```markdown
+## Session N — YYYY-MM-DD
+
+### Completed
+- T001I1: Bootstrap database (#PR-1)
+- T002I1: Create user ORM models (#PR-2)
+
+### Blocked
+- (none)
+
+### Decisions
+- Chose Alembic over raw SQL for migrations (ADR-003)
+
+### System state
+- DB schema created, FastAPI running on :8000, /docs accessible
+- All tests passing (4/4)
+
+### Next session
+- Start with T005I1: Pydantic schemas — auth
 ```
 
-### Reviewer session system prompt
-```
-You are a senior engineer reviewing a PR.
-Check the implementation against CLAUDE.md, the API contract, the ERD,
-and the relevant MSD if applicable.
-Be specific. Request changes with exact line references.
-Approve only when all patterns are respected and the spec is met.
-```
+When a new coding session starts, Claude Code reads CLAUDE.md → CONTEXT.md → SESSIONS.md (latest entry) and has complete context to continue.
 
 ### Audit cadence
-Every 10 PRs or at the end of each phase, Claude Code audits the full codebase:
-- Does the folder structure match `CLAUDE.md`?
-- Are all mandatory patterns respected?
-- Are there any forbidden patterns present?
-- Does the implemented API match `api-spec.yaml`?
-- Does the DB schema match `erd.dbml`?
+Every 10 PRs or at the end of each phase, Claude Code audits the full codebase via `/audit-plan`.
 
-**Output of audit:** `docs/audit_<phase>_<date>.md`
+**Output of audit:** `docs/audits/audit_<phase>_<date>.md`
 
 ---
 
-## Step 13 — Human Intensive Testing (HIT)
+## Step 15 — Human Intensive Testing (HIT)
 
-**Who:** You  
+**Who:** You
 **Trigger:** End of each phase (MVP, V1, V2, etc.)
 
-At the end of each phase, ask Claude Code to spin up the full system in Docker.
+At the end of each phase, run `/system-up` to spin up the full system.
 
 ### Testing loop
 
 ```
-Claude Code starts Docker (full stack: DB + backend + frontend)
+Claude Code starts the full system (DB + backend + frontend)
+      ↓
+Claude Code provides:
+  · localhost URL
+  · Test credentials (admin, manager, analyst)
+  · Navigation flow to test
+  · What to pay attention to
       ↓
 Human navigates the app manually
   · Every view
@@ -512,9 +668,9 @@ Human logs every issue found (title + steps to reproduce + expected vs actual)
       ↓
 Human passes issue list to Claude Code
       ↓
-Claude Code fixes all issues
+Claude Code fixes all issues, logs in SESSIONS.md
       ↓
-Claude Code restarts Docker
+Claude Code restarts system
       ↓
 Human tests again
       ↓
@@ -530,14 +686,19 @@ Repeat until the phase is accepted
 ```
 / (root)
 ├── CLAUDE.md
+├── CONTEXT.md
+├── SESSIONS.md
 ├── docs/
 │   ├── PRD.md
 │   ├── views.md
 │   ├── api-spec.yaml
+│   ├── api-frontend-reference.docx
 │   ├── data-model.md
 │   ├── erd.dbml
 │   ├── architecture.md
 │   ├── DEVELOPMENT_PLAN.md
+│   ├── GITHUB_ISSUES.md
+│   ├── project-gantt.html
 │   ├── adrs/
 │   │   └── 00N-<title>.md
 │   ├── research/
@@ -562,6 +723,21 @@ Repeat until the phase is accepted
 
 ---
 
+## Commands Reference (Claude Code)
+
+| Command | What it does |
+|---|---|
+| `/bootstrap-github` | Convert GITHUB_ISSUES.md into live GitHub Project with issues, labels, dates |
+| `/ship-issue` | Full gitflow: branch → implement → self-review → PR → wait for human → merge → cleanup → log |
+| `/solve-issue` | Implement a specific issue, with guidance for when things break |
+| `/review-pr` | Review a PR against all specs |
+| `/audit-plan` | Audit the codebase against the development plan |
+| `/change-scope` | Request a design change after the freeze |
+| `/debug` | Analyze and fix broken things in the codebase |
+| `/system-up` | Start the full system and provide test instructions |
+
+---
+
 ## The Method in One Line
 
-> Draw it → derive it → freeze it → build it → test it.
+> Draw it → derive it → plan it → freeze it → build it → test it.

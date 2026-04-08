@@ -48,11 +48,13 @@ Copy one file per call. Do not batch.
 
 Files to copy:
 - audit-plan.md
+- bootstrap-github.md
 - change-scope.md
-- development-plan.md
+- debug.md
 - review-pr.md
 - ship-issue.md
 - solve-issue.md
+- system-up.md
 
 ### 5. Write .gitignore
 Write this content to `<PROJECT_PATH>/.gitignore`:

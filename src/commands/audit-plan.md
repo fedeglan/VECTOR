@@ -9,6 +9,7 @@ Run this every 10 merged PRs and at the end of each phase.
 Read these files in full:
 - CLAUDE.md
 - CONTEXT.md
+- SESSIONS.md
 - docs/DEVELOPMENT_PLAN.md
 - docs/api-spec.yaml
 - docs/erd.dbml
@@ -18,7 +19,7 @@ Read these files in full:
 ## What to audit
 
 ### 1. Plan compliance
-For every TASK in DEVELOPMENT_PLAN.md marked as done:
+For every TASK in DEVELOPMENT_PLAN.md marked as done (check SESSIONS.md):
 - Do the files listed in "Files affected" actually exist?
 - Does the implementation satisfy the "Done when" criterion?
 - Flag any task marked done that does not fully satisfy its criterion.
@@ -77,4 +78,4 @@ Warnings found: N
 <summary of what is correct>
 ```
 
-Then report the summary in the chat and tell the human what must be fixed before proceeding to the next phase.
+Log the audit in SESSIONS.md. Report the summary to the human and tell them what must be fixed before proceeding.

@@ -1,6 +1,6 @@
 # /change-scope
 
-Request a design change after the Design Freeze (Step 9.5).
+Request a design change after the Design Freeze (Step 10).
 
 ## Usage
 ```
@@ -18,7 +18,7 @@ If the human has not already described the change, ask:
 ### 2. Identify the impact
 Based on the change description, identify:
 - Which step(s) of the VECTOR method the change affects
-- Which artefact files need to be updated (PRD, views, api-spec, erd, MSDs, architecture, CLAUDE.md, CONTEXT.md)
+- Which artefact files need to be updated (PRD, views, api-spec, api-frontend-reference, erd, MSDs, architecture, DEVELOPMENT_PLAN, CONTEXT.md)
 - Which downstream artefacts are affected as a consequence
 
 Present the impact to the human:
@@ -45,19 +45,27 @@ For each affected artefact, in step order:
 - Apply the change
 - Write the updated file to disk
 
-### 5. Update CLAUDE.md and CONTEXT.md
-Always update both files last to reflect any changes made to the design.
+### 5. Update CONTEXT.md
+Always update CONTEXT.md last to reflect any changes made to the design.
 
 ### 6. Re-confirm the design freeze
-Append an updated freeze marker to CLAUDE.md:
+Append an updated freeze marker to CONTEXT.md:
 ```
 DESIGN FREEZE: YES — <date> (updated: <change summary>)
 ```
 
-### 7. Report to the human
+### 7. Update downstream documents
+If the change affects the development plan:
+- Regenerate affected sections of DEVELOPMENT_PLAN.md
+- Regenerate affected issues in GITHUB_ISSUES.md
+- Update project-gantt.html if scheduling changed
+
+### 8. Report to the human
 ```
 ✓ Updated: <list of files changed>
 ✓ Design freeze re-confirmed
 
 Summary of changes: <one paragraph>
+
+Note: If GITHUB_ISSUES.md was updated, you'll need to update the corresponding GitHub issues manually or ask Claude Code to sync them.
 ```
