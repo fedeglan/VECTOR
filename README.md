@@ -164,6 +164,7 @@ After completing all design steps, the project will also contain:
 | `/ship-issue` | Full gitflow: branch → implement → review → PR → merge → cleanup → log |
 | `/solve-issue` | Implement a specific issue with debugging guidance |
 | `/review-pr` | Review a PR against all specs |
+| `/explain-pr` | Explain the PR in very simple terms |
 | `/audit-plan` | Audit codebase against the development plan |
 | `/debug` | Analyze and fix broken things |
 | `/system-up` | Start full system with test credentials and instructions |

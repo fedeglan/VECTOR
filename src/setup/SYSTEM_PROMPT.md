@@ -799,6 +799,7 @@ Tell the human:
 > - `/ship-issue` — full pipeline: branch → implement → review → PR → merge → log
 > - `/solve-issue` — implement a specific issue
 > - `/review-pr` — review a PR against all specs
+> - `/explain-pr` - explain the PR in very simple terms
 > - `/audit-plan` — verify codebase against the development plan
 > - `/debug` — analyze and fix broken things
 > - `/system-up` — start the full system with test instructions

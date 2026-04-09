@@ -51,6 +51,7 @@ Files to copy:
 - bootstrap-github.md
 - change-scope.md
 - debug.md
+- explain-pr.md
 - review-pr.md
 - ship-issue.md
 - solve-issue.md

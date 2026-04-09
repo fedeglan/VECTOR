@@ -731,6 +731,7 @@ Repeat until the phase is accepted
 | `/ship-issue` | Full gitflow: branch → implement → self-review → PR → wait for human → merge → cleanup → log |
 | `/solve-issue` | Implement a specific issue, with guidance for when things break |
 | `/review-pr` | Review a PR against all specs |
+| `/explain-pr` | Explain the PR in very simple terms |
 | `/audit-plan` | Audit the codebase against the development plan |
 | `/change-scope` | Request a design change after the freeze |
 | `/debug` | Analyze and fix broken things in the codebase |
