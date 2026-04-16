@@ -48,7 +48,7 @@ HANDOVER
 CLAUDE CODE TAKES OVER
   Step 13 · GitHub Project Bootstrap          (GPB)
   Step 14 · AI Development with Human-in-Loop (AIDH)
-  Step 15 · Human Intensive Testing           (HIT)
+  Step 15 · Phase Close Testing              (PCT)
 ```
 
 ---
@@ -641,43 +641,141 @@ Every 10 PRs or at the end of each phase, Claude Code audits the full codebase v
 
 ---
 
-## Step 15 — Human Intensive Testing (HIT)
+## Step 15 — Phase Close Testing (PCT)
 
-**Who:** You
+**Who:** Claude Code + You
 **Trigger:** End of each phase (MVP, V1, V2, etc.)
 
-At the end of each phase, run `/system-up` to spin up the full system.
+Testing is the weakest link in most LLM-assisted development. AI-generated code passes unit tests cleanly but breaks user flows in ways only E2E and human exploration catch. Step 15 closes this gap with a structured two-part workflow: automated pyramid testing by Claude Code, then exploratory testing by the human with a formal bug reporting and fix loop.
 
-### Testing loop
+Four commands drive this step: `/test-plan`, `/how-to-navigate`, `/report-bug`, `/fix-bugs`.
+
+### The flow
 
 ```
-Claude Code starts the full system (DB + backend + frontend)
-      ↓
-Claude Code provides:
-  · localhost URL
-  · Test credentials (admin, manager, analyst)
-  · Navigation flow to test
-  · What to pay attention to
-      ↓
-Human navigates the app manually
-  · Every view
-  · Every user action
-  · Every edge case you can think of
-      ↓
-Human logs every issue found (title + steps to reproduce + expected vs actual)
-      ↓
-Human passes issue list to Claude Code
-      ↓
-Claude Code fixes all issues, logs in SESSIONS.md
-      ↓
-Claude Code restarts system
-      ↓
-Human tests again
-      ↓
-Repeat until the phase is accepted
+┌────────────────────────────────────────────────────────────┐
+│ Phase close begins                                         │
+└────────────────────────────────────────────────────────────┘
+                         ↓
+┌────────────────────────────────────────────────────────────┐
+│ /test-plan                                                 │
+│ Claude Code runs the full testing pipeline in 3 phases:    │
+│                                                             │
+│   Phase 1 — Audit existing corpus                          │
+│     · Inventory tests written during development           │
+│     · Measure coverage + qualitative smells                │
+│     · Identify gaps per module and per layer               │
+│                                                             │
+│   Phase 2 — Complete the suite (3 streams)                 │
+│     · Stream A: fix broken/smelly tests                    │
+│     · Stream B: expand unit + integration where gaps       │
+│     · Stream C: build missing layers from scratch          │
+│       (security, E2E, UX/UI visual, performance)           │
+│                                                             │
+│   Phase 3 — Execute (budget: ≤20m)                         │
+│     · Layer 1: Unit            ≤ 60s                       │
+│     · Layer 2: Integration     ≤ 3m                        │
+│     · Layer 3: Security        ≤ 2m                        │
+│     · Layer 4: E2E             ≤ 5m                        │
+│     · Layer 5: UX/UI visual    ≤ 3m                        │
+│     · Layer 6: Performance     ≤ 5m (V1+ only)             │
+│                                                             │
+│ Output: docs/testing/test_plan_<phase>_<date>.md           │
+└────────────────────────────────────────────────────────────┘
+                         ↓
+            ┌────────────┴────────────┐
+            ↓                         ↓
+      If failures              If all passed
+            ↓                         ↓
+      /debug + fix              /how-to-navigate
+            ↓                         ↓
+      re-run /test-plan         Claude Code prepares human with:
+                                  · .env config changes needed
+                                  · How to start the system
+                                  · Test credentials per role
+                                  · 4-round navigation plan:
+                                    Round 1 — happy paths per role
+                                    Round 2 — edge cases
+                                    Round 3 — views flagged for this phase
+                                    Round 4 — responsive check
+                                  · Specific things to double-check
+                                         ↓
+┌────────────────────────────────────────────────────────────┐
+│ Human explores the app                                     │
+│                                                             │
+│ Following the navigation plan (or deviating — that's fine) │
+│                                                             │
+│ For each issue found:                                      │
+│   /report-bug                                              │
+│   · Claude Code asks structured questions                  │
+│   · Captures title, steps, expected vs actual, severity    │
+│   · Appends to docs/testing/BUG_BACKLOG.md                 │
+│                                                             │
+│ Severity levels:                                           │
+│   · P0  blocker  — cannot use the app                      │
+│   · P1  major    — core feature broken                     │
+│   · P2  minor    — works with issues                       │
+│   · P3  cosmetic — visual polish                           │
+│   · IMP          — improvement, not a bug                  │
+└────────────────────────────────────────────────────────────┘
+                         ↓
+┌────────────────────────────────────────────────────────────┐
+│ /fix-bugs                                                  │
+│                                                             │
+│ Phase 1 — Analyze                                          │
+│   · Deduplicate and group related bugs                     │
+│   · Enrich quick-mode bugs with code inspection            │
+│   · Categorize (backend/frontend/quant/infra/UX)           │
+│   · Estimate effort and risk per bug                       │
+│   · Assign priority based on severity × current phase      │
+│                                                             │
+│ Phase 2 — Propose plan                                     │
+│   · Build fix batches (P0 = 1 bug per batch, P3 = up to 10)│
+│   · Sequence: P0 → P1 → P2 → P3                            │
+│   · Present to human for review                            │
+│                                                             │
+│ Phase 3 — Execute (after human approval)                   │
+│   · For each batch: branch from DEV                        │
+│   · Reproduce each bug                                     │
+│   · Identify root cause                                    │
+│   · Implement fix + mandatory regression test              │
+│   · PR, human review, merge, cleanup                       │
+│   · Update backlog: 🟡 open → 🔵 triaged → 🟢 fixed         │
+│                                                             │
+│ Phase 4 — Verify                                           │
+│   · Re-run /test-plan to confirm no regressions            │
+│   · Check phase acceptance criteria                        │
+└────────────────────────────────────────────────────────────┘
+                         ↓
+            Phase acceptance criteria met?
+            · 0 P0 bugs open
+            · 0 P1 bugs open (or explicitly deferred)
+            · /test-plan passes with no regressions
+                         ↓
+                    ┌────┴────┐
+                    ↓         ↓
+                   No        Yes
+                    ↓         ↓
+          keep testing    Phase accepted ✅
+                            Move to next phase
 ```
 
-**Gate:** Human formally accepts the phase before moving to the next one.
+### Artefacts generated during Step 15
+
+```
+docs/testing/
+├── test_plan_<phase>_<date>.md  ← audit + completion plan + execution report
+├── BUG_BACKLOG.md               ← all bugs with status lifecycle
+└── (test files added to tests/ under appropriate layer subdirs)
+```
+
+### Gate
+
+The phase is formally accepted when:
+- All automated test layers pass (unit + integration + security + E2E + UX/UI + performance if V1+)
+- Zero P0 bugs open
+- Zero P1 bugs open (or explicitly deferred by the human with written justification in the backlog)
+- No regressions introduced by fixes
 
 ---
 
@@ -704,8 +802,9 @@ Repeat until the phase is accepted
 │   ├── research/
 │   │   ├── msd_<model>.md
 │   │   └── <model>.ipynb
-│   └── audits/
-│       └── audit_<phase>_<date>.md
+│   ├── audits/
+│   │   └── audit_<phase>_<date>.md
+│   └── testing/...
 ├── backend/
 │   ├── api/
 │   ├── services/
@@ -735,7 +834,10 @@ Repeat until the phase is accepted
 | `/audit-plan` | Audit the codebase against the development plan |
 | `/change-scope` | Request a design change after the freeze |
 | `/debug` | Analyze and fix broken things in the codebase |
-| `/system-up` | Start the full system and provide test instructions |
+| `/test-plan` | Audit existing tests, complete the suite, execute all layers, produce report |
+| `/how-to-navigate` | Prepare human for exploratory testing: setup, credentials, navigation plan |
+| `/report-bug` | Capture a bug report with structured fields, append to BUG_BACKLOG.md |
+| `/fix-bugs` | Analyze backlog, propose fix plan, execute after human review |
 
 ---
 

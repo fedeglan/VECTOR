@@ -99,10 +99,14 @@ vector/
 │   │   ├── bootstrap-github.md
 │   │   ├── change-scope.md
 │   │   ├── debug.md
+│   │   ├── explain-pr.md
+│   │   ├── fix-bugs.md
+│   │   ├── how-to-navigate.md
+│   │   ├── report-bug.md
 │   │   ├── review-pr.md
 │   │   ├── ship-issue.md
 │   │   ├── solve-issue.md
-│   │   └── system-up.md
+│   │   └── test-plan.md
 │   └── setup/                 ← Claude.ai setup (not copied into projects)
 │       ├── SYSTEM_PROMPT.md   ← goes into Claude Project custom instructions
 │       ├── setup.md           ← run once to configure MCPs
@@ -167,8 +171,11 @@ After completing all design steps, the project will also contain:
 | `/explain-pr` | Explain the PR in very simple terms |
 | `/audit-plan` | Audit codebase against the development plan |
 | `/debug` | Analyze and fix broken things |
-| `/system-up` | Start full system with test credentials and instructions |
 | `/change-scope` | Request a design change after the freeze |
+| `/test-plan` | Audit existing tests, complete the suite, execute all layers, produce report |
+| `/how-to-navigate` | Prepare human for exploratory testing: setup, credentials, navigation plan |
+| `/report-bug` | Capture a bug during exploratory testing (structured or quick mode) |
+| `/fix-bugs` | Analyze backlog, propose fix plan, execute after human review |
 
 ---
 

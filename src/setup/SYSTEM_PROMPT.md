@@ -794,16 +794,21 @@ Tell the human:
 >
 > Claude Code's first task will be to run `/bootstrap-github` to create all GitHub issues from the issues document.
 >
-> Available commands:
+> Available commands — development:
 > - `/bootstrap-github` — create GitHub Project with all issues, labels, milestones, and dates
 > - `/ship-issue` — full pipeline: branch → implement → review → PR → merge → log
 > - `/solve-issue` — implement a specific issue
 > - `/review-pr` — review a PR against all specs
-> - `/explain-pr` - explain the PR in very simple terms
+> - `/explain-pr` — explain the PR in very simple terms
 > - `/audit-plan` — verify codebase against the development plan
 > - `/debug` — analyze and fix broken things
-> - `/system-up` — start the full system with test instructions
 > - `/change-scope` — request a design change (goes back to Claude.ai)
+>
+> Available commands — phase close testing (Step 15):
+> - `/test-plan` — audit existing tests, complete the suite, execute all layers, produce report
+> - `/how-to-navigate` — prepare you for exploratory testing: setup, credentials, navigation plan
+> - `/report-bug` — capture a bug during exploratory testing (structured or quick mode)
+> - `/fix-bugs` — analyze backlog, propose fix plan, execute after your review
 >
 > Return here if you need to update any design document."
 

@@ -35,9 +35,10 @@ Wait for each call to succeed before making the next one.
 5.  <PROJECT_PATH>/docs/adrs
 6.  <PROJECT_PATH>/docs/research
 7.  <PROJECT_PATH>/docs/audits
-8.  <PROJECT_PATH>/research
-9.  <PROJECT_PATH>/backend
-10. <PROJECT_PATH>/frontend
+8.  <PROJECT_PATH>/docs/testing
+9.  <PROJECT_PATH>/research
+10. <PROJECT_PATH>/backend
+11. <PROJECT_PATH>/frontend
 ```
 
 Do not batch these. Create them sequentially.
@@ -52,10 +53,13 @@ Files to copy:
 - change-scope.md
 - debug.md
 - explain-pr.md
+- fix-bugs.md
+- how-to-navigate.md
+- report-bug.md
 - review-pr.md
 - ship-issue.md
 - solve-issue.md
-- system-up.md
+- test-plan.md
 
 ### 5. Write .gitignore
 Write this content to `<PROJECT_PATH>/.gitignore`:
