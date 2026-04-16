@@ -182,3 +182,6 @@ After completing all design steps, the project will also contain:
 ## License
 
 MIT
+
+## Citation
+Glancszpigel, Federico M., VECTOR: A Structured Method for AI-Assisted Fullstack Software Development (April 03, 2026). Available at SSRN: https://ssrn.com/abstract=6516343
