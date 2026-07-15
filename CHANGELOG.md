@@ -82,9 +82,10 @@ coherence): profile token canonicalized to `service-api` in `VECTOR.md`; the dea
 which are hooked regardless of how a file entered context; the deny blocked legitimate reviewer
 reads and closed nothing).
 
-### Not yet shipped
-- **The Tier-2 relay-runner** is the Phase B deliverable. 2.0.0 ships its build contract and its executable specification (`src/orchestration/runner/tests/fsm_sim.py`). Until it lands, Act I and the Tier-3 gates are fully usable and Act II runs at L0/L1 — human-driven `/ship-issue`, with the gates enforcing the contract underneath.
-- Profiles `cli/library` and `quant-pipeline` (2.x). Step 19's reference implementation binds at the first real deploy (Phase F); the spec is complete.
+### Honest residuals (documented, not hidden)
+- **The Tier-2 relay-runner is built** (see the Validation entry above) but has **not** run with live `claude -p` *builder/reviewer* processes closing issues on a live repo — blocked on operator credentials (an authenticated headless CLI + a dedicated machine user for autonomous merges). Until an operator sets those up, Act II is operated at **L0/L1** (human-driven `/ship-issue` + merge, gates enforcing underneath); L2/L3 autonomy is opt-in and earned via the graduation telemetry. Runbook: `src/orchestration/runner/README.md`.
+- No multi-project empirical data yet (build quality, shadow divergence, revert rate — the L3 graduation thresholds).
+- Profiles `cli/library` and `quant-pipeline` (2.x). Step 19's reference implementation binds at the first real *remote* deploy; the spec is complete and the machinery is exercised locally.
 
 ## [1.x]
 

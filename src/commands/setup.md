@@ -17,9 +17,9 @@ git clone https://github.com/fedeglan/vector.git && cd vector && make install
 Report which install path is in use and the `method_version` — projects pin it at their freeze.
 
 ### 2. Install the Tier-2 runner
-**Not yet shipped — the Phase B deliverable.** Do not attempt to install it; there is no package. What exists today is its build contract (`src/orchestration/runner/README.md`) and its executable specification (`tests/fsm_sim.py`, 8/8 scenarios including kill/resume identity), which Phase B builds against.
+Install the built runner: `make runner` (or `pip install ./src/orchestration/runner`) — it exposes `vector-run start|resume|status|halt` and `vector-revert <tag>`. Its control flow is executed **39/39** against the real runner (`src/orchestration/runner/tests/test_fsm_live.py`, incl. a real SIGKILL/resume) with `fsm_sim.py` (the spec) still 8/8.
 
-Tell the human plainly: until the runner lands, **Act I and the gates are fully usable, and Act II runs at L0/L1 the v1 way** — they drive `/ship-issue` per issue and merge each PR themselves, with the hooks and CI enforcing the contract underneath. `/run-phase` will report the same rather than pretending.
+Tell the human plainly: the runner is **built and control-flow-proven, but not yet run with live `claude -p` builder processes** (that needs an authenticated headless CLI + a dedicated machine user for autonomous merges — see `src/orchestration/runner/README.md`). Until they set those up, **Act I and the gates are fully usable, and Act II is operated at L0/L1** — they drive `/ship-issue` per issue and merge each PR themselves, with the hooks and CI enforcing the contract underneath.
 
 ### 3. Install the Explorer's engine
 ```bash

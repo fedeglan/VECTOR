@@ -17,7 +17,7 @@ import json
 import os
 import time
 
-from . import gates, scheduler, spawn
+from . import gates, notify, scheduler, spawn
 from .policy import reviewer_model
 from .state import now_iso
 
@@ -42,7 +42,8 @@ class Hooks:
     def log_escalation(self, st, iid, reason, question, context=""):
         """The full six-field escalate.md template (R-ESC-04) — header carries no
         (needs-human) suffix (that is a GitHub label, not part of the entry). The
-        dependents/continuing sets are computed from state at escalation time."""
+        dependents/continuing sets are computed from state at escalation time. Fires the
+        one-way notify hook (POLICY §12 events: escalation) — best-effort, never blocks."""
         dependents = _dependents(st, iid)
         continuing = _continuing(st, iid)
         dep = ", ".join(dependents) if dependents else "none"
@@ -55,6 +56,8 @@ class Hooks:
                 f"**Options considered:** (none pre-selected — the human decides)\n"
                 f"**Blocked:** {iid} · **Also blocked (dependents):** {dep}\n"
                 f"**Independent work continuing:** {cont}\n")
+        notify.send(self.policy, "escalation", f"VECTOR escalation — {iid} [{reason}]: "
+                    f"{question}")
 
     def record_shadow(self, entry):
         data = []
@@ -221,9 +224,12 @@ def run_issue(st, policy, hooks, iid):
         st.set_status(iid, "ci-pending")
         infra_retries = 0
         while True:
+            _ci_t0 = time.time()
             ci_state, names, tail = gates.wait_ci(
                 pr, cwd, policy["merge"]["required_checks"],
                 timeout_secs=_remaining_secs(it, budgets))
+            it["wall_secs"] = it.get("wall_secs", 0) + int(time.time() - _ci_t0)
+            st.persist()
             if ci_state == "infra-red":
                 if infra_retries < 1:
                     infra_retries += 1
@@ -371,4 +377,10 @@ def run(st, policy, hooks, max_steps=1000):
                 merges_since_cadence = 0
                 st.event("cadence", "10 merges: /audit-plan + explorer smoke due")
     st.persist()
+    if st.halted and st.halted.startswith(("breaker", "freeze")):
+        notify.send(policy, "breaker", f"VECTOR run HALTED: {st.halted} — needs the human")
+    counts = {}
+    for it in st.issues.values():
+        counts[it["status"]] = counts.get(it["status"], 0) + 1
+    notify.send(policy, "run-summary", f"VECTOR run finished: {counts}; halted={st.halted}")
     return st.st

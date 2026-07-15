@@ -9,7 +9,7 @@ CLAUDE_DIR ?= $(HOME)/.claude
 
 help:
 	@echo "make install    - copy commands + agents into $(CLAUDE_DIR)"
-	@echo "make runner     - install the Tier-2 relay-runner (NOT YET SHIPPED — Phase B)"
+	@echo "make runner     - install the Tier-2 relay-runner (vector-run / vector-revert)"
 	@echo "make test       - run the hook red-team batteries + the runner FSM spec"
 	@echo "make verify     - test + report the method version"
 	@echo "make uninstall  - remove VECTOR files from $(CLAUDE_DIR)"
@@ -29,14 +29,7 @@ runner:
 		pipx install ./src/orchestration/runner || pip install --user ./src/orchestration/runner; \
 		echo "Runner installed. CLI: vector-run start|resume|status|halt"; \
 	else \
-		echo "The Tier-2 relay-runner is NOT YET SHIPPED — it is the Phase B deliverable."; \
-		echo ""; \
-		echo "What exists today: its build contract (src/orchestration/runner/README.md)"; \
-		echo "and its executable specification (src/orchestration/runner/tests/fsm_sim.py,"; \
-		echo "8/8 scenarios incl. kill/resume identity). Phase B builds the runner against it."; \
-		echo ""; \
-		echo "Until then: Act I (design) and Tier 3 (the gates) are fully usable;"; \
-		echo "Act II runs at L0/L1 the v1 way — you drive /ship-issue and merge."; \
+		echo "Runner package missing (src/orchestration/runner/pyproject.toml). Reinstall VECTOR."; \
 		exit 1; \
 	fi
 
@@ -53,8 +46,11 @@ test:
 	@echo "== CI nets red-team (coverage-ratchet + diff-based test-protection) =="
 	@python3 src/orchestration/ci/tests/redteam_ci.py
 	@echo ""
-	@echo "== Runner FSM specification =="
+	@echo "== Runner FSM specification (the executable control-flow spec) =="
 	@python3 src/orchestration/runner/tests/fsm_sim.py
+	@echo ""
+	@echo "== Runner live battery (real runner vs deterministic shims + red-team regressions) =="
+	@cd src/orchestration/runner/tests && python3 test_fsm_live.py | tail -1
 
 verify: test
 	@echo ""

@@ -13,7 +13,7 @@ Execute the Design Freeze (Step 11) — the moment the specs stop being drafts a
 Synthesize the project bible: module map, naming conventions, architecture patterns (mandatory and forbidden), the layering rules, and the stack. This is what every builder and reviewer reads.
 
 ### 2. Instantiate POLICY.md
-Copy the template and fill it *with the human* — this is the autonomy contract and its values are the human's to set:
+Copy the template (`<plugin>/src/templates/POLICY_TEMPLATE.md`) to the project's `POLICY.md` and fill it *with the human* — this is the autonomy contract and its values are the human's to set:
 - `autonomy_level` — the starting level (the human's sovereign choice; L1→L2→L3 is the recommended earned path).
 - Budgets, breakers, graduation thresholds.
 - Explorer cadence and visual thresholds.

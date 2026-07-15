@@ -90,12 +90,12 @@ The **👤 diamonds are the only five moments that need you** once building star
 5. **Freeze.** You seal the design. From this moment the plan is a **contract**: it can only change through one deliberate, tracked procedure — never on a whim, never silently. **← 👤 Gate 3.**
 6. **Prepare the build.** The AI turns the plan into a list of small tickets (each with a precise "done" test) and installs the guardrails into the project as files. You give the final go-ahead to start building. **← 👤 Gate 4.**
 
-**Act II — Build (the machine leads; you can look away).**
+**Act II — Build (the machine leads).**
 
 7. The builder AI takes one ticket, writes the code and the tests for it, and opens it for review.
 8. **The guardrails run on every keystroke and every merge.** They refuse any attempt to edit the frozen blueprint, delete or hollow out a test, or add an unapproved dependency.
 9. A **second, independent** AI reviews the work with fresh eyes (it never sees the first AI's reasoning, so it doesn't inherit its blind spots).
-10. The work merges **only if every automatic check passes.** Then the builder picks up the next ticket. This repeats, unattended, through the whole phase.
+10. The work merges **only if every automatic check passes.** Then the builder picks up the next ticket. *(Fully unattended, look-away merging is the L2/L3 "autonomy dial" setting — it's built and control-flow-proven but not yet run live end to end, so today you start at L0/L1 and review + merge each ticket yourself; the guardrails hold either way.)*
 
 **Act III — Ship and run (shared).**
 
@@ -143,7 +143,7 @@ Set per project in `POLICY.md`; raised only by the human, never by the loop.
 
 ## What makes v2 different
 
-- **Enforcement as files, not instructions:** PreToolUse hooks (red-teamed, 47-case battery), CODEOWNERS on frozen paths, CI checks (conformance, security, coverage-ratchet, test-protection), branch protection under a dedicated machine user.
+- **Enforcement as files, not instructions:** PreToolUse hooks (red-teamed, 47-case battery), CODEOWNERS on frozen paths, CI checks (conformance, security, coverage-ratchet, test-protection), and branch protection that requires a dedicated machine user (the piece an operator sets up; the pilot ran single-identity).
 - **The interactive mock (Step 9):** a clickable prototype generated from your specs, used before the freeze — the intent check moved to where corrections cost minutes.
 - **Escalation as the only ambiguity resolution:** six classes, park-and-continue scheduling, circuit breakers, kill-safe state.
 - **Rollback as mechanism:** an annotated tag per autonomous merge; `vector-revert` opens a revert PR through the same gates.
@@ -161,7 +161,7 @@ The **`webapp`** profile (complete in 2.0.0) targets the reference stack: Python
 ## Requirements
 
 - Claude Code (subscription or API)
-- Python 3.11+ (the hooks; later the Tier-2 runner), Node.js, Playwright (the Explorer)
+- Python 3.11+ (the hooks and the Tier-2 runner), Node.js, Playwright (the Explorer)
 - A GitHub account **plus a dedicated machine user** for autonomous merges
 
 Claude.ai is no longer required: v2's canonical surface is Claude Code end to end. Chat surfaces remain a fine place to think — nothing is real until it is a committed file.
@@ -179,7 +179,7 @@ Claude.ai is no longer required: v2's canonical surface is Claude Code end to en
 
 Installs the namespaced commands (`/vector:new-project`, `/vector:run-phase`, …) and agents globally, versioned as a unit. Manual fallback: clone + `make install`.
 
-> **What works today (2.0.0):** Act I end to end, Tier 3 (the gates — hooks, CI, protection), and the Act III definition. **The Tier-2 relay-runner is not yet shipped** — it is the Phase B deliverable, and what ships now is its build contract plus its executable specification (`tests/fsm_sim.py`, 8/8 scenarios). Until it lands, Act II runs at L0/L1 the v1 way: you drive `/ship-issue` and merge. See *Method status*.
+> **What works today (2.0.0):** Act I end to end; Tier 3 (the gates — hooks, CI, protection); Act III (`/promote` + the ops-pack) exercised on a real local deploy target; and **the Tier-2 relay-runner is built** (`src/orchestration/runner/`, `vector-run`/`vector-revert`), with its control flow executed **39/39** against the real runner (incl. a real kill/resume) plus a red-team pass. What it has **not** yet done is close the loop with live `claude -p` *builder* processes — that needs an authenticated headless CLI and a dedicated machine user (operator setup). So in practice you operate Act II at **L0/L1** today (you review and merge each PR; the gates enforce the contract underneath), and turn on autonomous merging (L2/L3) once you've set those up and earned the trust telemetry. See *Method status* and `src/orchestration/runner/README.md`.
 
 ### 2. The contract in each repo
 
@@ -227,9 +227,11 @@ vector/
 │       ├── ci/                 ← the merge-time logic nets (real code, not YAML)
 │       │   ├── coverage_ratchet.py · test_protection_ci.py
 │       │   └── tests/redteam_ci.py  ← executed battery (18/18)
-│       └── runner/             ← the Tier-2 relay-runner
-│           ├── README.md       ← the build contract + CLI
-│           └── tests/fsm_sim.py  ← the executable spec of the control flow (8/8)
+│       └── runner/             ← the Tier-2 relay-runner (built)
+│           ├── vector_runner/  ← the package (vector-run / vector-revert); cli, state,
+│           │                     policy, scheduler, pipeline, spawn, gates, digest, revert
+│           ├── README.md       ← build contract + live-run runbook
+│           └── tests/          ← fsm_sim.py (spec, 8/8) · test_fsm_live.py (real runner, 39/39)
 ├── docs/
 │   ├── VECTOR.md               ← the full v2 method (19 steps)
 │   ├── OPERATIONS.md           ← the Step-19 ops spec (cost ladder, migrations, solo-ops)
@@ -288,7 +290,7 @@ vector/
 
 ## Method status
 
-**v2.0.0 — definition frozen 2026-07-15.** Validated pre-freeze by execution (hooks red-team 47/47 with one real bypass found and fixed; runner state machine 8/8 scenarios including kill/resume identity; consistency audit resolved) and by two council audits. Implementation rolls out in gated phases A–F — see `docs/DECISIONS.md`. The published 15-step method is anchored at the `v1-final` git tag. Changes to the method itself now go through its own change-scope discipline.
+**v2.0.0 — definition frozen 2026-07-15.** Validated by execution, not assertion: hooks red-team 47/47 (one real bypass found and fixed) + CI nets 18/18; the Tier-2 runner's control flow **39/39 against the real runner** via deterministic shims (incl. a real SIGKILL/resume) with a 16-agent red-team that found and fixed 9 issues (`fsm_sim.py` still 8/8); Act I + L0/L1 Act II proven end-to-end on a real pilot; `/promote` + Act III (E/F machinery) exercised on a real *local* deploy target. The honest residuals — documented, not hidden — are a live `claude -p` builder run (needs headless auth + a machine user), a real *remote* deploy target, and multi-project operating data over time; see `docs/DECISIONS.md` §6–§7. The published 15-step method is anchored at the `v1-final` git tag. Changes to the method itself now go through its own change-scope discipline.
 
 ---
 
