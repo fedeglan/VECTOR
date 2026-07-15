@@ -46,6 +46,10 @@ cp <plugin>/src/templates/workflows/*.yml .github/workflows/
 - **Adapt** each workflow to the real stack (package manager, test commands, service containers).
   Keep each **job name === the required-check name** (`ci-tests`, `conformance`, `security`,
   `coverage-ratchet`, `test-protection`) — `/bootstrap-github` requires them by that exact name.
+- **`conformance.yml` has one project-provided step:** the migrations↔ERD diff has no universal
+  tool, so the template calls `.github/scripts/erd_diff.sh` and fails loudly if it is absent.
+  Wire it to this project's stack (e.g. `alembic upgrade head` on a scratch DB → dump the schema
+  → diff against `docs/erd.dbml`). Do not delete the step to make the check pass.
 - **`CODEOWNERS`** — copy `<plugin>/src/templates/CODEOWNERS`, replace `{{HUMAN_GITHUB_USER}}`
   with the human's GitHub handle. It covers the frozen paths + `POLICY.md` and **not** `tests/**`.
 - **Initialize the coverage baseline** so `coverage-ratchet` has something to ratchet against:
