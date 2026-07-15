@@ -69,8 +69,11 @@ node_modules/
 dist/
 
 # VECTOR
-mock/                  # the Step-9 prototype is generated and disposable
-.vector/state.json     # runtime state, not source
+# (comments MUST be on their own line — git does not support trailing comments in .gitignore)
+# mock/ is the disposable Step-9 prototype; state.json/digest/ are runtime state, not source
+mock/
+playground/
+.vector/state.json
 .vector/digest/
 
 # OS / IDE

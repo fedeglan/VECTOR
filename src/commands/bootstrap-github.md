@@ -77,22 +77,26 @@ git checkout -b DEV && git push origin DEV
 
 ### Step 6 — Branch protection with the required checks (the point of the whole step)
 Protect `DEV` so a merge is **mechanically impossible** until all six checks are green. The check
-names must match the workflow job names from `/handover` exactly.
+names must match the workflow job names from `/handover` exactly. **Use a typed JSON body** (`--input`),
+NOT `-f` fields: the protection API requires real booleans/integers/null, and `-f` sends everything as
+strings, which fails with a 422 (`"true" is not a boolean`).
 ```bash
-gh api -X PUT "repos/$OWNER_REPO/branches/DEV/protection" \
-  -H "Accept: application/vnd.github+json" \
-  -f 'required_status_checks[strict]=true' \
-  -f 'required_status_checks[contexts][]=ci-tests' \
-  -f 'required_status_checks[contexts][]=conformance' \
-  -f 'required_status_checks[contexts][]=security' \
-  -f 'required_status_checks[contexts][]=coverage-ratchet' \
-  -f 'required_status_checks[contexts][]=test-protection' \
-  -f 'required_status_checks[contexts][]=reviewer-approval' \
-  -f 'enforce_admins=true' \
-  -f 'required_pull_request_reviews[required_approving_review_count]=0' \
-  -f 'required_pull_request_reviews[require_code_owner_reviews]=true' \
-  -f 'restrictions=null'
+gh api -X PUT "repos/$OWNER_REPO/branches/DEV/protection" --input - <<'JSON'
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["ci-tests","conformance","security","coverage-ratchet","test-protection","reviewer-approval"]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": { "required_approving_review_count": 0, "require_code_owner_reviews": true },
+  "restrictions": null
+}
+JSON
 ```
+> **Plan note:** classic branch protection (and the newer rulesets API) on a **private** repo requires
+> GitHub Pro/Team; on the free plan it returns `403 Upgrade to GitHub Pro or make this repository public`.
+> If the project repo is private on a free plan, either upgrade or the human makes it public; otherwise the
+> merge-gate cannot be enforced and this is a Step-14 blocker, not something to skip silently.
 - `require_code_owner_reviews=true` makes `CODEOWNERS` bite: a PR touching a frozen path needs the
   human's review even though ordinary PRs need zero human approvals (autonomy).
 - `enforce_admins=true` so even an admin cannot merge past a red check.
