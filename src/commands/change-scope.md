@@ -1,71 +1,36 @@
 # /change-scope
 
-Request a design change after the Design Freeze (Step 10).
+The *only* sanctioned way to change a frozen spec after the Design Freeze. Everything downstream trusts the freeze; this command is the controlled mutation that keeps that trust intact. In v2 it also gates the re-queue of any issue that was parked on a spec-conflict.
 
-## Usage
-```
-/change-scope
-```
+## When
+- The human wants a design change after the freeze.
+- A spec-conflict escalation requires a frozen spec to actually change to be resolved.
 
-Then describe the change you want in plain language. Claude will take it from there.
+## What you do
 
-## What you do — step by step
+### 1. State the change precisely
+Write what changes, in which frozen artifact, and why. If this originated from an escalation, link it.
 
-### 1. Ask the human to describe the change
-If the human has not already described the change, ask:
-> "What would you like to change?"
+### 2. Impact analysis
+Trace the blast radius before touching anything:
+- Which other frozen specs are affected (endpoint ↔ reference ↔ views; migration ↔ ERD)?
+- Which issues — done, in-flight, or queued — are invalidated or need to change?
+- Does the roadmap phase boundary move?
+Present this to the human. A scope change with an unexamined blast radius is how a frozen contract quietly rots.
 
-### 2. Identify the impact
-Based on the change description, identify:
-- Which step(s) of the VECTOR method the change affects
-- Which artefact files need to be updated (PRD, views, api-spec, api-frontend-reference, erd, MSDs, architecture, DEVELOPMENT_PLAN, CONTEXT.md)
-- Which downstream artefacts are affected as a consequence
+### 3. Human approval
+The human approves the change and its impact. Do not proceed on your own judgment — this is a frozen-spec edit, the one thing the whole method is built to make deliberate.
 
-Present the impact to the human:
-```
-Change requested: <summary>
+### 4. Apply — through the freeze, not around it
+- Update the frozen artifact(s). (You are authorized here; this is the sanctioned path the hooks make an exception for — via the freeze-marker update, not a direct unguarded edit.)
+- Update the freeze marker / `method_version` context and re-tag if the change is material.
+- Regenerate or amend the affected issues in `GITHUB_ISSUES.md` and `issues.json`.
+- If the mock still exists and the change is UI-facing, regenerate it (never hand-edit).
 
-Affected steps: Step N, Step M
-Artefacts to update:
-  · docs/<file> — <why>
-  · docs/<file> — <why>
+### 5. Re-queue
+Any issue parked on the resolved spec-conflict may now re-queue. The runner enforces this by timestamp: an issue re-enters only after the freeze marker's update time is newer than the escalation. This prevents building against a spec that hasn't actually changed yet.
 
-Downstream consequences:
-  · <consequence>
-
-Do you want to proceed?
-```
-
-### 3. Wait for confirmation
-Do not touch any file until the human explicitly confirms.
-
-### 4. Execute the updates
-For each affected artefact, in step order:
-- Read the current file
-- Apply the change
-- Write the updated file to disk
-
-### 5. Update CONTEXT.md
-Always update CONTEXT.md last to reflect any changes made to the design.
-
-### 6. Re-confirm the design freeze
-Append an updated freeze marker to CONTEXT.md:
-```
-DESIGN FREEZE: YES — <date> (updated: <change summary>)
-```
-
-### 7. Update downstream documents
-If the change affects the development plan:
-- Regenerate affected sections of DEVELOPMENT_PLAN.md
-- Regenerate affected issues in GITHUB_ISSUES.md
-- Update project-gantt.html if scheduling changed
-
-### 8. Report to the human
-```
-✓ Updated: <list of files changed>
-✓ Design freeze re-confirmed
-
-Summary of changes: <one paragraph>
-
-Note: If GITHUB_ISSUES.md was updated, you'll need to update the corresponding GitHub issues manually or ask Claude Code to sync them.
-```
+## Hard rules
+- No frozen-spec change without impact analysis and human approval.
+- Do not use `/change-scope` to paper over an implementation problem that isn't actually a spec problem. If the spec is right and the code is wrong, that's a bug, not a scope change.
+- Keep the specs internally consistent after the change — a partial edit that leaves endpoints and reference disagreeing is worse than no edit.

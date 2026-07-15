@@ -1,0 +1,17 @@
+{
+  "_comment": "TEMPLATE — not a plugin-level hook registration. This is the settings snippet /vector:new-project copies into each project's .claude/settings.json, after copying the three hook scripts into that project's .claude/hooks/. It is deliberately NOT referenced from .claude-plugin/plugin.json: plugin-level hooks would load in every session (including non-VECTOR projects, where these paths do not exist), and — more importantly — enforcement that ships with the operator's plugin install rather than the project's committed files is not enforcement. Tier 3 is repo-native by design: a fresh clone of a VECTOR project is protected because the gates are versioned files in it. Step 13 adds the merge-time layer (conformance, coverage-ratchet, test-protection CI) in .github/workflows/. Exit code 2 = hard block.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/frozen_specs.py\"" },
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/test_protection.py\"" },
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/deps_guard.py\"" }
+        ]
+      }
+    ]
+  },
+  "_deny_rules_note": "Also add permissions.deny entries for the frozen paths to close the @-reference read gap, e.g. 'Read(./docs/api-spec.yaml)' is allowed but Edit/Write are blocked by the hook; the deny list prevents @-file inclusion from being used to smuggle edits. See ORCHESTRATION SPEC 3.3.",
+  "_builder_note": "Builder invocations additionally pass --disallowedTools WebFetch,WebSearch (never rely on --allowedTools under bypassPermissions; it is ignored)."
+}
