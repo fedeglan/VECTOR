@@ -1,0 +1,18 @@
+{
+  "name": "vector",
+  "version": "2.0.0",
+  "description": "VECTOR — take what you have in your head to a production application: directly, efficiently, unequivocally, robustly. Visual-first design, a frozen spec enforced as a contract, and an autonomous build/test/release loop with a human-set autonomy dial.",
+  "author": {
+    "name": "Federico M. Glancszpigel",
+    "url": "https://github.com/fedeglan"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/fedeglan/vector",
+  "repository": "https://github.com/fedeglan/vector",
+  "keywords": ["methodology", "spec-driven", "autonomous", "claude-code", "gitflow"],
+  "commands": "./src/commands",
+  "agents": [
+    "./src/agents/vector-builder.md",
+    "./src/agents/vector-reviewer.md"
+  ]
+}

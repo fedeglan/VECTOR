@@ -1,0 +1,16 @@
+{
+  "name": "vector",
+  "description": "The VECTOR method: take what you have in your head to a production application — directly, efficiently, unequivocally, robustly. Visual-first design, a frozen spec enforced as a contract, and an autonomous build/test/release loop with a human-set autonomy dial.",
+  "owner": {
+    "name": "Federico M. Glancszpigel",
+    "url": "https://github.com/fedeglan"
+  },
+  "plugins": [
+    {
+      "name": "vector",
+      "source": "./",
+      "description": "The VECTOR method as a Claude Code plugin: design commands, autonomous orchestration, and the Tier-3 gate hooks. Install once; instantiate the per-project contract with /vector:new-project.",
+      "version": "2.0.0"
+    }
+  ]
+}
