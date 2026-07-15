@@ -32,8 +32,9 @@ Run the hook batteries in-repo and rehearse a rollback:
 ```bash
 python3 .claude/hooks/tests/redteam.py
 python3 .claude/hooks/tests/redteam2.py
+python3 .claude/hooks/tests/redteam3.py
 ```
-Then prove, live: an agent cannot edit a frozen spec, cannot delete a test, cannot add a dependency silently, and cannot merge past a red check. Finally, execute one `vector-revert <tag>` on a throwaway commit and confirm it opens a revert PR through the same gates.
+Then prove, live: an agent cannot edit a frozen spec, cannot delete a test, cannot add a dependency silently, and cannot merge past a red check. Finally, rehearse the revert: `vector-revert <tag>` on a throwaway commit, confirming it opens a revert PR through the same gates. **Until the Phase B runner ships, `vector-revert` does not exist** — rehearse the revert manually (a hand-authored revert PR through the same required checks) and note in the go/no-go that the scripted path is pending.
 
 ## The gate
 Present the four track results to the human as a single go/no-go. All green → the human authorizes launch and Act II begins with `/run-phase`. Any red → fix and re-run; nothing autonomous starts until this passes.

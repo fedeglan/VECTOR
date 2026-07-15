@@ -38,5 +38,8 @@ git push && git push --tags
 ## After the freeze
 Announce it plainly to the human: from this commit, the specs are law. They change only via `/change-scope`. Downstream, ambiguity escalates — it is never guessed — and the escalation rate is now the design-quality signal. Next: `/preflight-audit` after issues and handover are generated.
 
+## Profile note
+For the `service-api` profile, Steps 3, 4 and 9 are N-A: `views.md`, the Step-4 render baselines, and the mock gate are **not** preconditions and there is no `baselines/` archive step. The frozen-track set is then `PRD.md`, `api-frontend-reference.yaml` (the consumer↔endpoint mapping), `api-spec.yaml`, `erd.dbml`, and any `research/msd_*.md`; the pre-freeze intent check is the generated API playground plus contract examples. Everything else — `CONTEXT.md`, `POLICY.md`, the freeze checklist, the tag — is identical.
+
 ## Hard rule
 Do not freeze with an open `[NEEDS CLARIFICATION]` marker in any frozen-track file, or with a POLICY.md that does not parse. A design frozen over an open question is not frozen.

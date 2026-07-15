@@ -2,6 +2,8 @@
 
 The release pipeline (Step 18). Human-invoked. Takes an accepted phase from DEV to production through staging, a smoke gate, and the single production human gate. This is the only path to main/prod — the autonomous loop never touches them.
 
+> **Status (2.0.0):** `/promote`'s reference implementation is the Phase E deliverable and binds at the first real deploy; the `vector-revert` command it references is the Phase B relay-runner's revert and is **not yet shipped**. Until both land, run the pipeline manually — deploy to staging, exercise the smoke rounds, take the human GO, deploy, and rehearse rollback as a hand-authored revert PR through the same gates. Do not pretend a step ran that did not.
+
 ## Preconditions
 - The phase is accepted (Step 17: 0 P0, 0 P1 or justified deferral, audit clean).
 - DEV is green.

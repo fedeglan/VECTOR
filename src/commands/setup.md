@@ -75,10 +75,11 @@ One-way only. Recipients (single chat, list, or group) are set per project in `P
 ### 8. Prove the gates work
 Run the hook batteries from the installed plugin's reference copy:
 ```bash
-python3 <plugin>/orchestration/hooks/tests/redteam.py
-python3 <plugin>/orchestration/hooks/tests/redteam2.py
+python3 <plugin>/src/orchestration/hooks/tests/redteam.py
+python3 <plugin>/src/orchestration/hooks/tests/redteam2.py
+python3 <plugin>/src/orchestration/hooks/tests/redteam3.py
 ```
-Both must pass. This is the same battery every project re-runs in its own repo at Step 15 — a green result here proves the machine's Python and the hook logic are sound before any project depends on them.
+All three must pass. This is the same battery every project re-runs in its own repo at Step 15 — a green result here proves the machine's Python and the hook logic are sound before any project depends on them.
 
 ### 9. Confirm to the human
 

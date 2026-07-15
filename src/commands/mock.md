@@ -34,4 +34,4 @@ This is the one rule that keeps the mock safe. The mock is **generated and dispo
 The human confirms: **"I used the fake app and it is what I had in my head."** That confirmation is the gate. Only then does design proceed toward the freeze. If the human is not there yet, the divergences become spec fixes and you regenerate.
 
 ## Profile note
-For the `service/api` profile this command is N-A; the intent check moves to contract examples plus a generated API playground the human exercises instead.
+For the `service-api` profile this command is N-A; the intent check moves to contract examples plus a generated API playground the human exercises instead.

@@ -17,7 +17,7 @@ help:
 install:
 	@mkdir -p $(CLAUDE_DIR)/commands $(CLAUDE_DIR)/agents
 	@cp -v src/commands/*.md $(CLAUDE_DIR)/commands/
-	@cp -v src/agents/*.md   $(CLAUDE_DIR)/agents/
+	@cp -v agents/*.md       $(CLAUDE_DIR)/agents/
 	@echo ""
 	@echo "Commands installed to $(CLAUDE_DIR)/commands/."
 	@echo "Note: the plugin install namespaces them as /vector:* — with this fallback"
@@ -46,6 +46,9 @@ test:
 	@echo ""
 	@echo "== Hook red-team, round 2 (adversarial) =="
 	@cd src/orchestration/hooks/tests && python3 redteam2.py
+	@echo ""
+	@echo "== Hook red-team, round 3 (hardening regressions: absolute paths, compound installs, bare-dir deletes) =="
+	@cd src/orchestration/hooks/tests && python3 redteam3.py
 	@echo ""
 	@echo "== Runner FSM specification =="
 	@python3 src/orchestration/runner/tests/fsm_sim.py

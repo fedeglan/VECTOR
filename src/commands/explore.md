@@ -32,5 +32,8 @@ Every finding → `docs/testing/BUG_BACKLOG.md` in exact `/report-bug` format, w
 ## Smoke mode
 Every 10 merges, run rounds 1 and 3 only — fast drift detection without the full battery.
 
+## Profile note
+The rounds above are the `webapp` profile. For `service-api` (Steps 3, 4, 9 N-A — no views, no baselines), the Explorer swaps to **API-level probing**: schemathesis against `docs/api-spec.yaml` plus scenario contract tests against staging, keeping Round 1's core check (assert each mapped consumer↔endpoint call fires with the right method and a sane response) and Round 2's edge battery (auth per role, invalid payloads, pagination, error envelopes). Rounds 3–4 (changed views, visual + a11y diff vs `baselines/`) drop out. Findings still land in `docs/testing/BUG_BACKLOG.md` by the same severity rubric.
+
 ## Hard rule
 Report what you observe; do not fix here. Fixes are `/fix-bugs`, which routes by severity and sends each fix back through the full build gate.

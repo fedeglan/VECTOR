@@ -3,26 +3,53 @@
 Blocks any mutation of frozen design artifacts. Exit 2 = hard block.
 
 Wire in the project's .claude/settings.json under hooks.PreToolUse (see hooks.json).
-Reference implementation is python3 (portable; macOS ships no jq). Red-teamed: tests/redteam.py.
+Reference implementation is python3 (portable; macOS ships no jq). Red-teamed: tests/redteam.py,
+tests/redteam2.py, tests/redteam3.py.
+
+Path handling: Claude Code's Edit/Write/MultiEdit tools pass an ABSOLUTE file_path, while the
+frozen patterns below are repo-relative. Every incoming path is therefore normalized to a
+repo-relative path (against CLAUDE_PROJECT_DIR / the hook payload's cwd) BEFORE matching, so an
+absolute path can never slip past the anchored patterns. (Before v2 hardening the hook matched
+only literal repo-relative paths and failed OPEN on the absolute paths a live session sends.)
 """
-import sys, json, re, fnmatch
+import sys, json, re, fnmatch, os
 
 FROZEN = ["docs/api-spec.yaml", "docs/erd.dbml", "docs/PRD.md", "POLICY.md",
           "docs/api-frontend-reference.yaml", "docs/research/msd_*.md", "baselines/*"]
 WRITE_TOKENS = re.compile(r"(>>?|\btee\b|\bsed\s+-i|\bperl\s+-i|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bdd\b)")
 
-def is_frozen(path):
+def project_root(data):
+    """The project dir the frozen patterns are relative to. CLAUDE_PROJECT_DIR is what the
+    settings.json hook wiring itself uses; the payload's cwd and the process cwd are fallbacks."""
+    return os.environ.get("CLAUDE_PROJECT_DIR") or (data or {}).get("cwd") or os.getcwd()
+
+def rel_to_root(path, root):
+    """Normalize an absolute-or-relative file_path to a repo-relative POSIX path."""
     if not path:
+        return ""
+    ap = path if os.path.isabs(path) else os.path.join(root, path)
+    try:
+        rel = os.path.relpath(os.path.normpath(ap), os.path.normpath(root))
+    except ValueError:                      # e.g. different drive on Windows
+        rel = os.path.normpath(ap)
+    return rel.replace(os.sep, "/")
+
+def is_frozen(path, root):
+    rel = rel_to_root(path, root)
+    if not rel:
         return False
-    p = path.lstrip("./")
-    return any(fnmatch.fnmatch(p, pat) or p == pat for pat in FROZEN)
+    return any(fnmatch.fnmatch(rel, pat) or rel == pat for pat in FROZEN)
 
 def main():
-    data = json.load(sys.stdin)
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        sys.exit(0)                         # unparseable payload: do not obstruct (never crash to exit 1)
+    root = project_root(data)
     tool = data.get("tool_name", "")
     ti = data.get("tool_input", {}) or {}
     if tool in ("Edit", "Write", "MultiEdit", "NotebookEdit"):
-        if is_frozen(ti.get("file_path", "")):
+        if is_frozen(ti.get("file_path", ""), root):
             print("BLOCKED [frozen-specs]: '%s' is a frozen design artifact. "
                   "Specs change only via /change-scope. Escalate if the spec is ambiguous."
                   % ti.get("file_path"), file=sys.stderr)

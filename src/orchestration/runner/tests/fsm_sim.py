@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """VECTOR relay-runner FSM simulator — the ORCHESTRATION SPEC executed as a program.
 Mocked agents (scripted outcomes), real state machine, real persistence (state.json
-after EVERY transition), real breakers/budgets/park-and-continue. Seven scenarios.
+after EVERY transition), real breakers/budgets/park-and-continue. Eight scenarios.
 
 This is the executable specification of the runner's control flow (Phase B builds the
 real runner against it). Validated pre-freeze: 8/8. Run: python3 fsm_sim.py"""

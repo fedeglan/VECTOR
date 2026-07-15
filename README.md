@@ -102,9 +102,10 @@ vector/
 ├── .claude-plugin/
 │   ├── plugin.json             ← the plugin manifest (this is what /plugin install reads)
 │   └── marketplace.json        ← the repo doubles as its own marketplace
+├── agents/                     ← vector-builder · vector-reviewer (model-pinned, isolated context)
+│                                 auto-discovered by Claude Code from this top-level dir (see note)
 ├── src/
-│   ├── commands/               ← the method's verbs (~20 .md files)
-│   ├── agents/                 ← vector-builder · vector-reviewer (model-pinned, isolated context)
+│   ├── commands/               ← the method's verbs (26 .md files)
 │   ├── templates/
 │   │   └── POLICY_TEMPLATE.md  ← the per-project autonomy contract
 │   └── orchestration/
@@ -112,7 +113,7 @@ vector/
 │       ├── hooks/              ← the Tier-3 gate hooks + their red-team batteries
 │       │   ├── frozen_specs.py · test_protection.py · deps_guard.py
 │       │   ├── hooks.json      ← the settings wiring copied into each project
-│       │   └── tests/          ← redteam.py · redteam2.py (47 cases; a project's own gate suite)
+│       │   └── tests/          ← redteam.py · redteam2.py · redteam3.py (47 red-team cases + hardening regressions)
 │       └── runner/             ← the Tier-2 relay-runner
 │           ├── README.md       ← the build contract + CLI
 │           └── tests/fsm_sim.py  ← the executable spec of the control flow (8/8)
@@ -125,6 +126,8 @@ vector/
 ├── README.md
 └── LICENSE
 ```
+
+> **Plugin component discovery (maintainer note).** `commands` is a directory path declared in `plugin.json`; **agents are auto-discovered from the top-level `agents/` directory** and are deliberately *not* listed in `plugin.json`. Current Claude Code CLIs do **not** honor an enumerated `agents` array in the manifest — it passes `plugin validate` but silently registers zero agents. Add an agent by dropping its `.md` file in `agents/`, never by editing `plugin.json`. Verify with `claude plugin details vector@vector` (the Agents count must match the file count).
 
 ---
 

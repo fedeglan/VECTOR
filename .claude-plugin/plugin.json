@@ -10,9 +10,5 @@
   "homepage": "https://github.com/fedeglan/vector",
   "repository": "https://github.com/fedeglan/vector",
   "keywords": ["methodology", "spec-driven", "autonomous", "claude-code", "gitflow"],
-  "commands": "./src/commands",
-  "agents": [
-    "./src/agents/vector-builder.md",
-    "./src/agents/vector-reviewer.md"
-  ]
+  "commands": "./src/commands"
 }

@@ -6,14 +6,18 @@ import sys, json, re, fnmatch, shlex
 MANIFESTS = ["requirements*.txt","pyproject.toml","package.json","poetry.lock",
              "package-lock.json","uv.lock","yarn.lock","Pipfile","Pipfile.lock","Gemfile*","Cargo.toml"]
 ALWAYS_ADD = re.compile(r"\b(yarn\s+add|pnpm\s+add|poetry\s+add|uv\s+add|cargo\s+add|gem\s+install)\b")
+# shell separators that chain independent commands — each segment is evaluated on its own so a
+# leading pinned install (pip install -r ...) cannot shield a trailing addition (&& pip install x).
+SEPARATORS = re.compile(r"&&|\|\||;|\||\n")
 
 def is_manifest(path):
     if not path: return False
     base = path.lstrip("./").split("/")[-1]
     return any(fnmatch.fnmatch(base, pat) for pat in MANIFESTS)
 
-def installs_new_package(cmd):
-    """Token-parse pip/npm installs: flags are skipped; -r/--requirement or bare lockfile installs pass."""
+def _segment_installs(cmd):
+    """True if a single command segment installs a NEW package.
+    Flags are skipped; -r/--requirement or bare lockfile installs pass."""
     if ALWAYS_ADD.search(cmd):
         return True
     try:
@@ -43,8 +47,15 @@ def installs_new_package(cmd):
         return False                    # bare npm install (lockfile) / pip install with only flags
     return False
 
+def installs_new_package(cmd):
+    """Token-parse pip/npm installs across every chained segment of the command."""
+    return any(_segment_installs(seg) for seg in SEPARATORS.split(cmd))
+
 def main():
-    data = json.load(sys.stdin)
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        sys.exit(0)                         # unparseable payload: do not obstruct
     tool = data.get("tool_name",""); ti = data.get("tool_input",{}) or {}
     if tool in ("Edit","Write","MultiEdit") and is_manifest(ti.get("file_path","")):
         print("BLOCKED [deps-guard]: dependency manifests are pinned at Step 12. "

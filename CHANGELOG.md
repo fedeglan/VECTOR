@@ -32,6 +32,25 @@ The autonomous release: v1 froze the design; v2 makes the frozen design executab
 ### Validation
 - Pre-freeze executable validation: hooks 47/47 across two red-team rounds (residual gaps mapped to named downstream nets); runner state machine 8/8 scenarios including kill/resume identity and shadow-mode semantics; POLICY parseability and cross-document consistency audited (7 findings resolved at freeze). Design council-audited twice (amendments A1–A4, B1–B5 integrated).
 
+### Fixed — implementation hardening (2026-07-15, post-freeze; definition unchanged)
+See `docs/audits/2026-07-15-repo-audit.md` for the full audit, evidence, and escalations.
+- **`frozen_specs` hook fired only on relative paths** and so failed OPEN on the absolute
+  `file_path` a live Claude Code session sends — an agent could edit any frozen spec, including
+  raising its own `autonomy_level` in `POLICY.md`. Now normalizes paths against the project root.
+- **Neither plugin agent registered** (`Agents (0)`): the manifest used an enumerated `agents`
+  array, which Claude Code does not honor. Agents moved to a top-level `agents/` directory
+  (auto-discovered); the discovery mechanism is now documented in the README.
+- **`deps_guard`** let an unpinned install ride behind a leading pinned one
+  (`pip install -r x && pip install evil`); now every chained segment is evaluated.
+- **`test_protection`** missed bare test-directory deletes (`rm -rf tests`) and the `test_*.py`
+  filename convention; both now blocked (false-positive-safe).
+- All three hooks now handle malformed stdin cleanly instead of crashing to exit 1.
+- Broken `<plugin>/…/hooks` paths in `setup.md`/`new-project.md` (missing `src/`) corrected;
+  `service-api` profile token aligned in the command layer; `service-api` profile notes added
+  to `freeze-design`/`explore`/`how-to-navigate`; unshipped-runner caveats added to
+  `promote`/`preflight-audit`. New `redteam3.py` hardening battery wired into `make test`
+  (the historical 47/47 across rounds 1–2 is preserved unchanged).
+
 ### Not yet shipped
 - **The Tier-2 relay-runner** is the Phase B deliverable. 2.0.0 ships its build contract and its executable specification (`src/orchestration/runner/tests/fsm_sim.py`). Until it lands, Act I and the Tier-3 gates are fully usable and Act II runs at L0/L1 — human-driven `/ship-issue`, with the gates enforcing the contract underneath.
 - Profiles `cli/library` and `quant-pipeline` (2.x). Step 19's reference implementation binds at the first real deploy (Phase F); the spec is complete.
