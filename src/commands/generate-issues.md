@@ -5,9 +5,9 @@ Execute **Step 12 — Issues & Ledger**. Turn the frozen design into the unit-of
 relay-runner consumes). Runs **after the freeze (Step 11)**, before `/handover` (Step 13) and
 `/bootstrap-github` (Step 14).
 
-> Note: the relay-runner is the Phase B deliverable and is not yet shipped. Until it lands, the
-> ledger is still produced (and drives the human-run L0/L1 `/ship-issue` order); nothing consumes
-> `state.json` yet.
+> Note: the relay-runner is built and consumes this ledger (`.vector/issues.json` → its ready-set)
+> and writes `.vector/state.json`. Until its live `claude -p` builder loop is exercised (needs
+> headless auth + a machine user), the same ledger also drives the human-run L0/L1 `/ship-issue` order.
 
 > **Owner:** AI generates, human reviews by sampling. This is derivation, not design — the
 > judgment was spent at the freeze. If you find yourself *inventing* scope here, stop: that is

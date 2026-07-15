@@ -37,7 +37,7 @@ python3 .claude/hooks/tests/redteam.py
 python3 .claude/hooks/tests/redteam2.py
 python3 .claude/hooks/tests/redteam3.py
 ```
-Then prove, live: an agent cannot edit a frozen spec, cannot delete a test, cannot add a dependency silently, and cannot merge past a red check. Finally, rehearse the revert: `vector-revert <tag>` on a throwaway commit, confirming it opens a revert PR through the same gates. **Until the Phase B runner ships, `vector-revert` does not exist** — rehearse the revert manually (a hand-authored revert PR through the same required checks) and note in the go/no-go that the scripted path is pending.
+Then prove, live: an agent cannot edit a frozen spec, cannot delete a test, cannot add a dependency silently, and cannot merge past a red check. Finally, rehearse the revert: `vector-revert <tag>` on a throwaway commit, confirming it opens a revert PR through the same gates. (`vector-revert` ships with the Tier-2 runner; if you have not installed it, rehearse the revert manually — a hand-authored revert PR through the same required checks — and note in the go/no-go that the scripted path was not exercised.)
 
 ## The gate
 Present the four track results to the human as a single go/no-go. All green → **persist the verdict**:

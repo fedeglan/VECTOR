@@ -88,7 +88,7 @@ All three must pass. This is the same battery every project re-runs in its own r
 
 ```
 ✓ VECTOR <method_version> installed (<plugin | make install>)
-— Runner                     → not yet shipped (Phase B); Act II runs at L0/L1 meanwhile
+✓ Runner installed          → vector-run built (39/39); live-builder loop unproven, operate L0/L1
 ✓ Playwright installed      → the Explorer can drive a real browser
 ✓ GitHub authenticated      → <username>
 <✓|—> Machine user token     → required before the design freeze

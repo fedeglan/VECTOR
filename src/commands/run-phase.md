@@ -23,7 +23,7 @@ If `POLICY.md` is missing a required key or does not parse, STOP and tell the hu
 Set `/goal` to the phase's acceptance condition from POLICY §11 (0 P0 · 0 P1 or justified deferral · audit clean). `/goal` is a continuation mechanism — it keeps the loop going — **not** a verifier. Verification is the gates, never the goal check.
 
 ### 2. Launch the runner
-> **Until Phase B lands, the relay-runner does not exist.** If `vector-run` is not on PATH, do not improvise a substitute and do not pretend the loop is running. Say so, and offer the honest fallback: drive the phase at L0/L1 the v1 way — `/ship-issue` per issue in dependency order, with the human merging each PR. The gates (hooks, CI, branch protection) are fully live and enforce the contract underneath, so the work is still VECTOR-grade; what is missing is the autonomy, not the discipline.
+> **The relay-runner is built; its live-builder loop is new.** Install it with `make runner` (or `pip install ./src/orchestration/runner`). If `vector-run` is not on PATH — or you have not set up an authenticated headless CLI + a dedicated machine user — do not improvise a substitute and do not pretend the loop is running: drive the phase at L0/L1 the v1 way (`/ship-issue` per issue in dependency order, the human merging each PR). The gates (hooks, CI, branch protection) are fully live either way. When you do run `vector-run`, remember its live `claude -p` builds are not yet proven at scale — supervise the first runs; autonomy (L2/L3) is earned via the graduation telemetry, not assumed.
 
 Start the relay-runner for this phase:
 ```bash
