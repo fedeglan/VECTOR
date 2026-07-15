@@ -37,7 +37,7 @@ The human approves the change and its impact. Do not proceed on your own judgmen
 - If the mock still exists and the change is UI-facing, regenerate it (never hand-edit).
 
 ### 5. Re-queue
-Any issue parked on the resolved spec-conflict may now re-queue. The runner enforces this by timestamp: an issue re-enters only after the freeze marker's update time is newer than the escalation. This prevents building against a spec that hasn't actually changed yet. **Until the Phase-B runner ships, re-queue is not automatic** — after the freeze marker is updated, the human re-dispatches the parked issue via `/ship-issue` in the L0/L1 flow.
+Any issue parked on the resolved spec-conflict may now re-queue. The runner enforces this by timestamp: an issue re-enters only after the freeze marker's update time is newer than the escalation. This prevents building against a spec that hasn't actually changed yet. **When operating L0/L1 without the runner**, re-queue is manual — after the freeze marker is updated, the human re-dispatches the parked issue via `/ship-issue`.
 
 ## Hard rules
 - No frozen-spec change without impact analysis and human approval.

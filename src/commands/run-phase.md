@@ -48,8 +48,8 @@ As the runner reports progress, keep the human oriented: which issue is building
 When every issue is `merged` or parked, the runner triggers `/audit-plan` → fast tests → `/explore` → `/fix-bugs` → thorough tests → acceptance (Step 17). Report the phase result and, per POLICY, notify-and-continue to the next phase or stop for the human.
 
 ## Controls (tell the human these exist)
-> Until the Phase-B runner ships, the `vector-run` controls below do not exist. Pre-Phase-B, the
-> live control is **Esc** (and `.vector/HALT` only matters once a runner is polling for it).
+> The `vector-run` controls below require the installed runner. If you are operating L0/L1 without
+> it, the live control is **Esc** (and `.vector/HALT` matters once `vector-run` is polling for it).
 - Halt: Esc, or (once the runner is installed) `vector-run halt` (writes `.vector/HALT`; stops at the next issue boundary).
 - Resume: `/run-phase` or (once installed) `vector-run resume` — `.vector/state.json` is authoritative and kill-safe.
 
