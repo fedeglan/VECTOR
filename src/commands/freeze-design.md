@@ -26,6 +26,17 @@ Copy the approved Step-4 renders to `baselines/`. These become the Explorer's vi
 
 ### 4. Walk the freeze checklist
 Confirm: specs cross-consistent (endpoints ↔ reference ↔ views; migrations ↔ ERD), no orphan endpoints, no unresolved `[NEEDS CLARIFICATION]` markers in frozen-track files. **Assert the frozen YAML actually parses** — "YAML is the source of truth" only if it loads: `python3 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in ['docs/api-spec.yaml','docs/api-frontend-reference.yaml']]"` must exit 0. (An unquoted `{id}` in an inline flow-mapping, e.g. `path: /links/{id}/tags`, silently makes the file invalid YAML; quote such values.)
+**Assert the error-response contract is complete** — not just the happy path. Every operation in
+`api-spec.yaml` must document each `4xx`/`422` it can return, with a response `schema`, and the
+validation-error body (`422`) must use a shape that matches what the stack actually returns (e.g. a
+FastAPI `422` is `{detail: [ ... ]}`, not `{detail: "string"}`). A spec that describes only `2xx`
+is a spec the phase-close Explorer will fail against — surface it here, where the fix is a spec
+edit, not a `/change-scope`:
+```bash
+python3 -c "import yaml; s=yaml.safe_load(open('docs/api-spec.yaml')); \
+bad=[f'{m.upper()} {p}' for p,ops in s['paths'].items() for m,o in ops.items() if isinstance(o,dict) and 'responses' in o and not any(str(c).startswith(('4','5')) for c in o['responses'])]; \
+assert not bad, f'operations with no documented error response: {bad}'; print('error-contract: every operation documents a 4xx/5xx')"
+```
 
 ### 5. Tag
 ```bash

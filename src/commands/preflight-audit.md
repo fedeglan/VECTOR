@@ -16,6 +16,9 @@ Build the cross-artifact matrix and check every direction:
 - Every endpoint → appears in `api-frontend-reference.yaml` and has ≥1 issue.
 - Every view → has ≥1 issue.
 - Every entity → covered by a migration issue.
+- Every operation → documents its error responses (`4xx`/`422` with a schema), re-checking the
+  freeze-design error-contract assertion. A contract that describes only the happy path is an
+  incomplete design that the phase-close Explorer will fail against — catch it here, not at Step 17.
 
 Emit it as a checklist. An orphan in any direction is a finding. (Steps N-A for the active profile drop out of the matrix automatically.)
 

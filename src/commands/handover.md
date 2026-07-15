@@ -50,6 +50,9 @@ cp <plugin>/src/templates/workflows/*.yml .github/workflows/
   tool, so the template calls `.github/scripts/erd_diff.sh` and fails loudly if it is absent.
   Wire it to this project's stack (e.g. `alembic upgrade head` on a scratch DB → dump the schema
   → diff against `docs/erd.dbml`). Do not delete the step to make the check pass.
+- **If you replace import-linter with a grep-based layering check**, grep for execution calls
+  (`\.execute\(`, `sqlite3\.connect`, ORM session calls) — NOT bare SQL keywords like `SELECT`/`DELETE`,
+  which false-positive on HTTP method names in route docstrings (`"DELETE /links/{id}"`).
 - **`CODEOWNERS`** — copy `<plugin>/src/templates/CODEOWNERS`, replace `{{HUMAN_GITHUB_USER}}`
   with the human's GitHub handle. It covers the frozen paths + `POLICY.md` and **not** `tests/**`.
 - **Initialize the coverage baseline** so `coverage-ratchet` has something to ratchet against:
