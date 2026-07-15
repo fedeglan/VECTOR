@@ -146,3 +146,34 @@ playing the human at every gate) validated the machinery and surfaced two findin
   GO → prod verify → **rollback recovered** — ran on a local deploy target with the ops-journal
   recording each event. Phase E/F machinery is now exercised; what remains before claiming them is a
   *real remote* target (network/TLS/reboot) and multi-project operating time.
+
+## 7. Phase B implemented — the Tier-2 relay-runner (2026-07-15)
+
+The relay-runner — the deterministic engine that was the largest *unbuilt* piece of Act II
+(and the reason "full autonomous end-to-end" sat at 4) — is now **built** in
+`src/orchestration/runner/vector_runner/` and installs a real `vector-run` / `vector-revert`
+entry point. Its control flow is lifted byte-for-byte from the frozen executable spec
+(`tests/fsm_sim.py`), wrapped with the real-world steps (fresh `claude -p` per role, CI
+polling, gh merge + pushed annotated tag, deterministic digest).
+
+**Proven, executed (not asserted):**
+- `tests/test_fsm_live.py` runs the 8 `fsm_sim` scenarios **against the real runner** via
+  deterministic `claude`/`gh`/`git` shims, plus 22 live-behavior scenarios (including a real
+  `SIGKILL` of the running process mid-build → state-only resume), plus 9 red-team
+  regressions — **39/39**. `fsm_sim.py` is untouched and still 8/8.
+- The parser reads the real pilot `POLICY.md`; the spawn contract was verified against the
+  real `claude` CLI.
+- **Adversarial red-team (16 agents, 7 lenses, executed attacks + independent verification):
+  9 confirmed violations found and fixed** — crash-safe atomic merge (write-ahead marker,
+  persist-before-tag, idempotent resume, merge-failure → infra escalation not a crash),
+  per-issue wall budget bounding reviewer+CI, final-block-only exit parsing, PR-ownership
+  verification, fail-fast numeric POLICY, the full six-field escalation template, and
+  unclean-phase refusal. Each is pinned by an `F*` regression.
+
+**Honest residual (what keeps full-autonomous below the scoped numbers):** the loop has not
+run with real `claude -p` *builder/reviewer* processes closing issues on a live repo. That is
+blocked only on operator credentials — an **authenticated headless CLI** (a fresh `claude -p`
+reports "Not logged in") and a **dedicated machine user** for autonomous merges under branch
+protection — plus the multi-project, over-time empirical data (build quality, shadow
+divergence, revert rate) that graduation to L3 requires and that no single session produces.
+A turnkey runbook ships in `src/orchestration/runner/README.md`.
