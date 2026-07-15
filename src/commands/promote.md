@@ -33,7 +33,7 @@ On GO: deploy to prod, then run post-deploy verification (health checks + a smok
 Confirm the rollback path is ready before you finish: the deploy rollback for the target, plus the `vector-revert <tag>` discipline for the code. If post-deploy verification fails, roll back immediately and report.
 
 ## Tag
-On success, tag the release and record it. On rollback, record what happened in `docs/OPERATIONS.md`'s ops-journal.
+On success, tag the release and record it. On rollback, append a one-line entry to `.vector/ops-journal.md` (the ops journal generated at Step 13 — `docs/OPERATIONS.md` is the spec, not the journal).
 
 ## Hard rules
 - No GO, no prod. Terminal-only GO (POLICY §13).

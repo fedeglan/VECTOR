@@ -20,7 +20,7 @@ Build the cross-artifact matrix and check every direction:
 Emit it as a checklist. An orphan in any direction is a finding. (Steps N-A for the active profile drop out of the matrix automatically.)
 
 ## Track 3 — Environment dry-run
-- Stack boots via `docker-compose up`.
+- Stack boots via `docker compose up` (the v2 plugin spelling; `docker-compose` is not on fresh installs).
 - Empty test suite runs green in CI.
 - `gh` authenticated as the machine user, with the right permissions.
 - Playwright installed and can launch.
@@ -37,7 +37,10 @@ python3 .claude/hooks/tests/redteam3.py
 Then prove, live: an agent cannot edit a frozen spec, cannot delete a test, cannot add a dependency silently, and cannot merge past a red check. Finally, rehearse the revert: `vector-revert <tag>` on a throwaway commit, confirming it opens a revert PR through the same gates. **Until the Phase B runner ships, `vector-revert` does not exist** — rehearse the revert manually (a hand-authored revert PR through the same required checks) and note in the go/no-go that the scripted path is pending.
 
 ## The gate
-Present the four track results to the human as a single go/no-go. All green → the human authorizes launch and Act II begins with `/run-phase`. Any red → fix and re-run; nothing autonomous starts until this passes.
+Present the four track results to the human as a single go/no-go. All green → **persist the verdict**:
+write `docs/audits/preflight-<ISO-date>.md` recording the four track results and the human's
+authorization (this is what `/vector:resume` keys on to detect Step 15 is done, and it is the audit
+trail). Then Act II begins with `/run-phase`. Any red → fix and re-run; nothing autonomous starts until this passes.
 
 ## Hard rule
 This gate is not advisory. A red track blocks autonomy. Do not proceed to `/run-phase` on a partial pass.

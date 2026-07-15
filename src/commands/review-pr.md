@@ -12,7 +12,7 @@ Read in full: `CLAUDE.md` (any violation is an automatic blocker), `CONTEXT.md`,
 - [ ] Every endpoint matches `api-spec.yaml` (path, method, request/response schema, error codes).
 - [ ] Every DB change matches `erd.dbml` (names, types, constraints, FKs).
 - [ ] Every quant function matches its MSD (inputs, logic, output range, null handling, failure modes).
-- [ ] Every UI action matches `api-frontend-reference.yaml`.
+- [ ] Every consumer interaction matches `api-frontend-reference.yaml` — a UI action for `webapp`; an endpoint + HTTP method (the consumer↔endpoint contract) for `service-api`.
 
 ### Architecture
 - [ ] No mandatory pattern from CLAUDE.md missing; no forbidden pattern present.

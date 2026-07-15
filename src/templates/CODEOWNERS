@@ -10,6 +10,7 @@
 # protected instead by the PreToolUse hook (edit time) + the test-protection CI check (merge time).
 
 /docs/PRD.md                       @{{HUMAN_GITHUB_USER}}
+/docs/views.md                     @{{HUMAN_GITHUB_USER}}
 /docs/api-frontend-reference.yaml  @{{HUMAN_GITHUB_USER}}
 /docs/api-spec.yaml                @{{HUMAN_GITHUB_USER}}
 /docs/erd.dbml                     @{{HUMAN_GITHUB_USER}}

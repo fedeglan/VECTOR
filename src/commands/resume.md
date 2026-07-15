@@ -49,7 +49,7 @@ Run `list_directory` on `<PROJECT_PATH>/docs/` and the root — file names only,
 | CONTEXT.md + POLICY.md + git tag `design-freeze/v1` | **Step 11 — frozen** |
 | docs/GITHUB_ISSUES.md + .vector/issues.json | Step 12 |
 | CLAUDE.md + .github/workflows/ + CODEOWNERS | Step 13 |
-| GitHub board + branch protection live | Step 14 |
+| .vector/bootstrap-complete (marker written by /bootstrap-github; board + protection live) | Step 14 |
 | docs/audits/preflight-*.md green | **Step 15 — authorized** |
 
 Profile note: for `service-api`, Steps 3, 4 and 9 are N-A and are skipped in this map.

@@ -20,11 +20,18 @@ Read `CLAUDE.md`, `CONTEXT.md`, `.vector/issues.json`, `docs/GITHUB_ISSUES.md`. 
 ACTIVE=$(gh api user --jq .login)
 BOT="<machine-user from POLICY.md bot_identity>"
 [ "$ACTIVE" = "$BOT" ] || { echo "ABORT: gh is authenticated as '$ACTIVE', not the machine user '$BOT'. Autonomous merges must not run as the human."; exit 1; }
-# The machine user must have write (push), not admin — least privilege:
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 PERM=$(gh api "repos/$OWNER_REPO/collaborators/$BOT/permission" --jq .permission)
-echo "machine user '$BOT' permission on $OWNER_REPO: $PERM"   # expect 'write'/'push'
+echo "machine user '$BOT' permission on $OWNER_REPO: $PERM"
 ```
+**Least-privilege vs. one-time admin (the reconciliation).** The machine user's steady-state
+privilege is **write** (push) — that is all the runner needs to open PRs and merge through the
+gates, and it is what keeps branch protection meaningful (the bot can't reconfigure the gates it
+runs under). But *setting and reading* branch protection (Steps 6–7) is a repo-**admin** operation.
+So run Steps 6–7 **once** under an admin identity — the human, or the machine user temporarily
+granted admin just for bootstrap — then drop the machine user back to write for the ongoing loop.
+Do not try to set or verify protection as a write-only user: it returns 403. If bootstrapping as
+the human, still confirm the *runner's* future identity is the write-only `bot_identity`.
 
 ## Execution
 
@@ -125,6 +132,11 @@ gh api "repos/$OWNER_REPO/branches/DEV/protection/required_status_checks" \
 ```
 
 ### Step 8 — Report
+Write a local completion marker so `/vector:resume` can detect Step 14 without querying remote
+GitHub state (its file-name scan cannot see "branch protection live"):
+```bash
+mkdir -p .vector && echo "bootstrapped $(date -u +%FT%TZ)" > .vector/bootstrap-complete
+```
 ```
 ✓ GitHub bootstrapped as machine user <bot>  (permission: write)
 ✓ Issues: <N> created, provably matching the ledger (MVP <a> / V1 <b> / V2 <c>)

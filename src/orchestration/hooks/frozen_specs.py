@@ -14,7 +14,7 @@ only literal repo-relative paths and failed OPEN on the absolute paths a live se
 """
 import sys, json, re, fnmatch, os
 
-FROZEN = ["docs/api-spec.yaml", "docs/erd.dbml", "docs/PRD.md", "POLICY.md",
+FROZEN = ["docs/api-spec.yaml", "docs/erd.dbml", "docs/PRD.md", "POLICY.md", "docs/views.md",
           "docs/api-frontend-reference.yaml", "docs/research/msd_*.md", "baselines/*"]
 WRITE_TOKENS = re.compile(r"(>>?|\btee\b|\bsed\s+-i|\bperl\s+-i|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bdd\b)")
 

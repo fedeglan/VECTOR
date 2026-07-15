@@ -9,7 +9,7 @@ Continuous monitoring is done by Tier D (deterministic rules) and, optionally, T
 - The overnight digest (`.vector/digest/<date>.md`) and any Tier-L cluster summaries.
 - Tier-D alert history since the last triage.
 - The error tracker's aggregated issues (counts, signatures) — **never raw user-generated content**.
-- `docs/OPERATIONS.md` ops-journal.
+- `.vector/ops-journal.md` (the ops journal; `docs/OPERATIONS.md` is the spec, not the journal).
 
 ## What you do
 1. Summarize the night for the human: uptime, alert count, error-rate trend, any pages fired, backup status.

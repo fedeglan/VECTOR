@@ -5,6 +5,10 @@ Execute **Step 12 — Issues & Ledger**. Turn the frozen design into the unit-of
 relay-runner consumes). Runs **after the freeze (Step 11)**, before `/handover` (Step 13) and
 `/bootstrap-github` (Step 14).
 
+> Note: the relay-runner is the Phase B deliverable and is not yet shipped. Until it lands, the
+> ledger is still produced (and drives the human-run L0/L1 `/ship-issue` order); nothing consumes
+> `state.json` yet.
+
 > **Owner:** AI generates, human reviews by sampling. This is derivation, not design — the
 > judgment was spent at the freeze. If you find yourself *inventing* scope here, stop: that is
 > a design gap and it goes back upstream through `/change-scope`, not forward into an issue.
@@ -108,9 +112,12 @@ The runner reads this, not the Markdown. Same content, machine shape. Every issu
 - Every PRD story is covered by ≥1 issue.
 
 ```bash
-python3 -c "import json,sys; d=json.load(open('.vector/issues.json')); ids={i['id'] for i in d['issues']}; \
-assert all(all(x in ids for x in i['deps']) for i in d['issues']), 'dangling dep'; \
-assert all(i['verification'] for i in d['issues']), 'issue with empty verification'; print(len(ids),'issues, ledger consistent')"
+python3 -c "import json,sys; d=json.load(open('.vector/issues.json')); iss=d['issues']; ids={i['id'] for i in iss}; \
+assert all(all(x in ids for x in i['deps']) for i in iss), 'dangling dep'; \
+assert all(i['verification'] for i in iss), 'issue with empty verification'; \
+g={i['id']:set(i['deps']) for i in iss}; done=set(); \
+[done.update(k for k,dep in g.items() if k not in done and dep<=done) for _ in ids]; \
+assert done==ids, 'CYCLE in the dependency DAG: '+str(ids-done); print(len(ids),'issues, ledger consistent + acyclic')"
 ```
 
 ### 7. Hand to the human for a sampling review

@@ -22,16 +22,24 @@
 | **medium** | mock | The Step-9 mock gate is never persisted (`mock/` is gitignored), so `/resume` cannot detect it. | Persist a dated `## Mock gate — passed <date>` line into `docs/views.md`. |
 | **medium** | freeze-design | *(from the pilot preflight run)* The freeze checklist doesn't assert the frozen **YAML actually parses**; an unquoted `{id}` in an inline flow-mapping silently makes `api-frontend-reference.yaml` invalid YAML. | Added a `yaml.safe_load` assertion to the freeze checklist. |
 
-## Deferred — documented, not fixed this pass
+## Also fixed (second pass — the mediums/lows)
 
-- **medium — bootstrap-github Step 7 protection read is admin-only** while Step 0 prescribes a
-  *write-only* least-privilege machine user, so a least-privilege bot 403s at verification. Needs a
-  design reconciliation (admin required to bootstrap/verify protection vs least-privilege for
-  steady-state), so it is raised rather than silently patched.
-- **low (×13)** — mostly unshipped-runner caveats missing on a few `resume.md`/`run-phase.md` lines,
-  a `report-bug.md` service-api profile note, a deprecated `docker-compose` (vs `docker compose`)
-  spelling, a `generate-issues` self-check that says "acyclic" without checking cycles, and the
-  `baselines/` producer-path being unstated. None blocks a first run; batched for a later polish.
+- **bootstrap-github protection-read reconciliation (medium) — RESOLVED:** the machine user's
+  steady-state privilege is **write** (all the runner needs); *setting/verifying* branch protection
+  (Steps 6–7) is a one-time **admin** action run by the human (or the bot temporarily granted admin),
+  then dropped back to write. Documented in Step 0.
+- **Lows fixed:** `docs/views.md` added to the `frozen_specs` FROZEN set + CODEOWNERS (it was declared
+  frozen-track but unprotected); unshipped-runner caveats added to `run-phase` Controls,
+  `generate-issues`, `change-scope` re-queue; `generate-issues` self-check now actually checks for a
+  cycle; `promote`/`triage` ops-journal ref corrected to `.vector/ops-journal.md`; `preflight-audit`
+  `docker-compose`→`docker compose` and it now **persists** its verdict to `docs/audits/preflight-<date>.md`
+  (the producer `/resume` keys on); `/bootstrap-github` writes `.vector/bootstrap-complete` (the local
+  marker `/resume` keys on for Step 14); `report-bug` + `review-pr` given service-api framing and the
+  `IMP` disposition clarified.
+- **Deferred (very low):** the `baselines/` render-source path coordination between `design` Step 4 and
+  `freeze-design` Step 3 — a naming convention, no first-run break; left for a later polish.
+
+`make test` after both passes: 37/37 + 10/10 + **26/26** + 18/18 + 8/8. No frozen file edited.
 
 ## Net effect on confidence
 

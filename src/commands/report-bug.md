@@ -35,7 +35,7 @@ Ask in a single message, grouped. Skip anything already clear from context.
 **Fields:**
 
 1. **Title** — short, specific (e.g., "App crashes when clicking Retry on failed report")
-2. **Where** — which view/page (e.g., "Reports list view, V03")
+2. **Where** — for `webapp`, which view/page (e.g., "Reports list view, V03"); for `service-api`, the endpoint + HTTP method (e.g., "POST /links") from `docs/api-frontend-reference.yaml`
 3. **Role** — which user role (admin / manager / analyst)
 4. **Steps to reproduce** — numbered list, as specific as possible
 5. **Expected behavior** — what the human thought would happen
@@ -45,7 +45,7 @@ Ask in a single message, grouped. Skip anything already clear from context.
    - `P1` (major: feature broken)
    - `P2` (minor: annoying but workable)
    - `P3` (cosmetic/polish)
-   - `IMP` (improvement, not a bug)
+   - `IMP` (improvement, not a bug) — logged to the backlog but **deferred out of the P0–P3 fix batch**; `/fix-bugs` does not action `IMP` items, they re-enter design as a future `/change-scope` or a later-phase story
 8. **Screenshot/video** (optional) — file path or "none"
 
 ### 3. Infer intelligently to reduce friction
