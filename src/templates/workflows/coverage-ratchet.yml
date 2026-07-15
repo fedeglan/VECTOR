@@ -1,0 +1,27 @@
+# VECTOR required check: coverage-ratchet  (webapp reference stack — /handover adapts; not universal)
+# Coverage may never drop. The net for a test neutered in a way the edit-time hook cannot see
+# (an early-return still "passes" but stops covering code -> shows up here as a coverage drop).
+# Uses .github/scripts/coverage_ratchet.py, copied from src/orchestration/ci/ by /handover.
+name: coverage-ratchet
+on:
+  pull_request:
+    branches: [DEV]
+jobs:
+  coverage-ratchet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install (pinned) + coverage
+        run: pip install -r backend/requirements.txt pytest-cov
+      - name: Tests with coverage (cobertura xml)
+        run: pytest backend/tests --cov=backend --cov-report=xml -q
+      - name: Ratchet — coverage may never drop below the committed baseline
+        run: >-
+          python3 .github/scripts/coverage_ratchet.py
+          --coverage-xml coverage.xml
+          --baseline .vector/coverage-baseline
+      # To raise the baseline after a legitimate improvement, a maintainer runs the same
+      # command with --set-baseline locally and commits .vector/coverage-baseline.

@@ -1,173 +1,138 @@
 # /bootstrap-github
 
-Convert `docs/GITHUB_ISSUES.md` into a live GitHub Project with all issues, labels, milestones, and dates.
+Execute **Step 14 — Bootstrap & Protection**. Turn `.vector/issues.json` (the ledger from
+Step 12) into a live GitHub Project **and stand up the gates that make autonomy safe**: branch
+protection with the required checks, the escalation labels, and a machine-user identity that is
+provably not you. Runs after `/handover` (Step 13), before `/preflight-audit` (Step 15).
 
-This is the first command Claude Code runs when it takes over the project.
+> **Owner: the machine user.** This command runs authenticated as the dedicated machine user —
+> not the human. That is what makes branch protection meaningful: *you* can never be the account
+> that merged past a red check. Verify the identity first (Step 0). Source of truth is
+> `.vector/issues.json`; `docs/GITHUB_ISSUES.md` is its human mirror.
 
 ## Before you start
+Read `CLAUDE.md`, `CONTEXT.md`, `.vector/issues.json`, `docs/GITHUB_ISSUES.md`. Identify the repo
+(`git remote -v`), the phases and their date ranges, and the machine-user handle from
+`POLICY.md §6` (`bot_identity`).
 
-Read these files:
-- CLAUDE.md — project conventions
-- CONTEXT.md — project overview
-- docs/GITHUB_ISSUES.md — the source of truth for all issues
-
-Identify:
-- The GitHub repo (from `git remote -v`)
-- The total number of issues to create
-- The phases and their date ranges
+### Step 0 — Verify the machine-user identity (do this first; abort if wrong)
+```bash
+ACTIVE=$(gh api user --jq .login)
+BOT="<machine-user from POLICY.md bot_identity>"
+[ "$ACTIVE" = "$BOT" ] || { echo "ABORT: gh is authenticated as '$ACTIVE', not the machine user '$BOT'. Autonomous merges must not run as the human."; exit 1; }
+# The machine user must have write (push), not admin — least privilege:
+OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+PERM=$(gh api "repos/$OWNER_REPO/collaborators/$BOT/permission" --jq .permission)
+echo "machine user '$BOT' permission on $OWNER_REPO: $PERM"   # expect 'write'/'push'
+```
 
 ## Execution
 
-### Step 1 — Create labels
-
-Create these labels on the repo (skip any that already exist):
-
+### Step 1 — Create labels (incl. the escalation labels)
 ```bash
-# Phase labels
-gh label create "phase:mvp" --color "0E8A16" --description "MVP phase"
-gh label create "phase:v1" --color "1D76DB" --description "V1 phase"
-gh label create "phase:v2" --color "5319E7" --description "V2 phase"
-
-# Type labels
-gh label create "type:feat" --color "A2EEEF" --description "Feature"
-gh label create "type:fix" --color "D73A4A" --description "Bug fix"
-gh label create "type:chore" --color "FEF2C0" --description "Chore"
-gh label create "type:infra" --color "F9D0C4" --description "Infrastructure"
-gh label create "type:review" --color "C5DEF5" --description "Review task"
-
-# Model labels
-gh label create "model:haiku" --color "BFD4F2" --description "Haiku model"
-gh label create "model:sonnet" --color "0075CA" --description "Sonnet model"
-gh label create "model:opus" --color "B60205" --description "Opus model"
-
-# Complexity labels
-gh label create "complexity:low" --color "0E8A16" --description "Low complexity"
-gh label create "complexity:medium" --color "FBCA04" --description "Medium complexity"
-gh label create "complexity:high" --color "D93F0B" --description "High complexity"
+# Phase
+gh label create "phase:mvp" --color "0E8A16" --description "MVP phase" 2>/dev/null || true
+gh label create "phase:v1"  --color "1D76DB" --description "V1 phase"  2>/dev/null || true
+gh label create "phase:v2"  --color "5319E7" --description "V2 phase"  2>/dev/null || true
+# Type
+for t in "feat:A2EEEF:Feature" "fix:D73A4A:Bug fix" "chore:FEF2C0:Chore" "infra:F9D0C4:Infrastructure" "review:C5DEF5:Review task"; do
+  n=${t%%:*}; rest=${t#*:}; c=${rest%%:*}; d=${rest#*:}; gh label create "type:$n" --color "$c" --description "$d" 2>/dev/null || true; done
+# Model
+gh label create "model:haiku"  --color "BFD4F2" --description "Haiku"  2>/dev/null || true
+gh label create "model:sonnet" --color "0075CA" --description "Sonnet" 2>/dev/null || true
+gh label create "model:opus"   --color "B60205" --description "Opus"   2>/dev/null || true
+# Complexity
+gh label create "complexity:low"    --color "0E8A16" --description "Low"    2>/dev/null || true
+gh label create "complexity:medium" --color "FBCA04" --description "Medium" 2>/dev/null || true
+gh label create "complexity:high"   --color "D93F0B" --description "High"   2>/dev/null || true
+# Escalation / human-attention (NEW in v2 — the runner applies these)
+gh label create "needs-human" --color "B60205" --description "Parked; a human decision is required" 2>/dev/null || true
+gh label create "escalated"   --color "E99695" --description "Escalation open (see ESCALATIONS.md)" 2>/dev/null || true
 ```
 
-### Step 2 — Create milestones
-
+### Step 2 — Milestones (per phase, dated from the roadmap)
 ```bash
-gh api repos/{owner}/{repo}/milestones -f title="MVP" -f description="Minimum viable product" -f due_on="<MVP end date>T23:59:59Z"
-gh api repos/{owner}/{repo}/milestones -f title="V1" -f description="Full first version" -f due_on="<V1 end date>T23:59:59Z"
-gh api repos/{owner}/{repo}/milestones -f title="V2" -f description="Post-V1 features" -f due_on="<V2 end date>T23:59:59Z"
+gh api repos/{owner}/{repo}/milestones -f title="MVP" -f due_on="<MVP end>T23:59:59Z" 2>/dev/null || true
+gh api repos/{owner}/{repo}/milestones -f title="V1"  -f due_on="<V1 end>T23:59:59Z"  2>/dev/null || true
+gh api repos/{owner}/{repo}/milestones -f title="V2"  -f due_on="<V2 end>T23:59:59Z"  2>/dev/null || true
 ```
 
-### Step 3 — Create a GitHub Project
-
+### Step 3 — Project board
 ```bash
-# Create the project
-gh project create --owner @me --title "<Project Name> — Development" --format json
-
-# Note the project number for later use
+gh project create --owner @me --title "<Project> — Development" --format json
+# Status field options: Backlog / In Progress / In Review / Done (all issues start Backlog)
 ```
 
-### Step 4 — Create all issues
+### Step 4 — Create issues FROM THE LEDGER
+Iterate `.vector/issues.json` (authoritative), not the Markdown. For each issue create it with
+title `T<NNN>I<N>: <title>`, the four labels, the milestone, and the body from
+`docs/GITHUB_ISSUES.md`; then add it to the board and set its start/end dates. Preserve the id →
+issue-number mapping (write it back into `.vector/issues.json` as `gh_number` so the runner can
+find each issue). Batch with a 1s delay; pause 10s every 30 issues; on 429/403 wait 60s and retry.
 
-Parse `docs/GITHUB_ISSUES.md` and create each issue in execution order.
-
-For each issue in the document:
-
+### Step 5 — DEV branch
 ```bash
-# Create the issue
-gh issue create \
-  --title "T<NNN>I<N>: <title>" \
-  --body "<full issue body from GITHUB_ISSUES.md>" \
-  --label "phase:<phase>,type:<type>,model:<model>,complexity:<level>" \
-  --milestone "<MVP|V1|V2>"
+git checkout -b DEV && git push origin DEV
 ```
 
-After creating each issue, add it to the GitHub Project and set the start/end dates:
-
+### Step 6 — Branch protection with the required checks (the point of the whole step)
+Protect `DEV` so a merge is **mechanically impossible** until all six checks are green. The check
+names must match the workflow job names from `/handover` exactly.
 ```bash
-# Add to project and set dates
-gh project item-add <project-number> --owner @me --url <issue-url>
-
-# Set start and end dates on the project item
-# Use the GitHub API to set date fields
-gh api graphql -f query='
-  mutation {
-    updateProjectV2ItemFieldValue(input: {
-      projectId: "<project-id>"
-      itemId: "<item-id>"
-      fieldId: "<start-date-field-id>"
-      value: { date: "<YYYY-MM-DD>" }
-    }) { projectV2Item { id } }
-  }'
+gh api -X PUT "repos/$OWNER_REPO/branches/DEV/protection" \
+  -H "Accept: application/vnd.github+json" \
+  -f 'required_status_checks[strict]=true' \
+  -f 'required_status_checks[contexts][]=ci-tests' \
+  -f 'required_status_checks[contexts][]=conformance' \
+  -f 'required_status_checks[contexts][]=security' \
+  -f 'required_status_checks[contexts][]=coverage-ratchet' \
+  -f 'required_status_checks[contexts][]=test-protection' \
+  -f 'required_status_checks[contexts][]=reviewer-approval' \
+  -f 'enforce_admins=true' \
+  -f 'required_pull_request_reviews[required_approving_review_count]=0' \
+  -f 'required_pull_request_reviews[require_code_owner_reviews]=true' \
+  -f 'restrictions=null'
 ```
+- `require_code_owner_reviews=true` makes `CODEOWNERS` bite: a PR touching a frozen path needs the
+  human's review even though ordinary PRs need zero human approvals (autonomy).
+- `enforce_admins=true` so even an admin cannot merge past a red check.
 
-**Important:** The start date and end date for each issue come from the `**Start date**` and `**End date**` fields in GITHUB_ISSUES.md. These dates populate the GitHub Project's built-in timeline/Gantt view.
-
-### Step 5 — Set up the Project board columns
-
-Configure the project's Status field with these options:
-- Backlog
-- In Progress
-- In Review
-- Done
-
-All issues start in "Backlog".
-
-### Step 6 — Create DEV branch
-
+### Step 7 — Self-verifying asserts against the ledger
+The board must be provably consistent with `.vector/issues.json`. Assert, do not eyeball:
 ```bash
-git checkout -b DEV
-git push origin DEV
-```
-
-### Step 7 — Verify
-
-Run verification checks:
-
-```bash
-# Count issues created
+LEDGER=$(python3 -c "import json;print(len(json.load(open('.vector/issues.json'))['issues']))")
 CREATED=$(gh issue list --state all --json number --jq length)
-echo "Issues created: $CREATED"
-
-# Count by phase
-echo "MVP: $(gh issue list --label 'phase:mvp' --state all --json number --jq length)"
-echo "V1: $(gh issue list --label 'phase:v1' --state all --json number --jq length)"
-echo "V2: $(gh issue list --label 'phase:v2' --state all --json number --jq length)"
-
-# Verify milestones
-gh api repos/{owner}/{repo}/milestones --jq '.[].title'
-
-# Verify project exists
-gh project list --owner @me
+[ "$LEDGER" = "$CREATED" ] || { echo "ABORT: ledger has $LEDGER issues, GitHub has $CREATED"; exit 1; }
+for p in mvp v1 v2; do
+  L=$(python3 -c "import json;print(sum(1 for i in json.load(open('.vector/issues.json'))['issues'] if i['phase']=='$p'))")
+  G=$(gh issue list --label "phase:$p" --state all --json number --jq length)
+  [ "$L" = "$G" ] || echo "PHASE MISMATCH $p: ledger $L vs GitHub $G"
+done
+# Branch protection is actually on, with all six contexts:
+gh api "repos/$OWNER_REPO/branches/DEV/protection/required_status_checks" \
+  --jq '.contexts' | tr ',' '\n' | grep -c -E 'ci-tests|conformance|security|coverage-ratchet|test-protection|reviewer-approval'  # expect 6
 ```
 
 ### Step 8 — Report
-
 ```
-✓ GitHub Project bootstrapped
-
-Issues created: <N> (MVP: <N>, V1: <N>, V2: <N>)
-Milestones: MVP (<date>), V1 (<date>), V2 (<date>)
-Project board: <project URL>
-DEV branch: created and pushed
-
-Labels applied: phase, type, model, complexity
-Dates set: start and end dates on all project items
-
-The project timeline/Gantt view is now populated.
-Ready to start development with /ship-issue.
+✓ GitHub bootstrapped as machine user <bot>  (permission: write)
+✓ Issues: <N> created, provably matching the ledger (MVP <a> / V1 <b> / V2 <c>)
+✓ Labels incl. needs-human / escalated; milestones; project board (Backlog→Done)
+✓ DEV branch protected — required checks: ci-tests, conformance, security, coverage-ratchet, test-protection, reviewer-approval
+✓ CODEOWNERS enforced on frozen paths (require_code_owner_reviews)
+Log Session 0 in SESSIONS.md. Next: /preflight-audit (Step 15).
 ```
-
-Log this in SESSIONS.md as Session 0.
 
 ## Error handling
+- `gh` not installed → `brew install gh` then re-auth **as the machine user**.
+- Label/milestone exists → skip (handled above).
+- Issue create fails → log, continue, report failures at the end; Step 7 will catch a count drift.
+- Branch protection needs admin on the repo — if the machine user lacks it, the **human** applies
+  the protection once (it is a one-time repo setting, not a per-merge action); the machine user
+  operates under it thereafter. Say so rather than silently skipping protection.
 
-- If `gh` CLI is not installed: `brew install gh` and `gh auth login`
-- If label already exists: skip (gh will warn, not error)
-- If milestone already exists: skip
-- If issue creation fails: log the error, continue with next issue, report failures at the end
-- If project date fields are not available: create them via the API first
-- Rate limiting: if GitHub returns 429, wait and retry with exponential backoff
-
-## Rate limiting strategy
-
-GitHub API has rate limits. For large projects (100+ issues):
-- Batch issue creation with 1-second delays between calls
-- After every 30 issues, pause for 10 seconds
-- If a 429 or 403 is received, wait 60 seconds and retry
+## Hard rules
+- Never run this as the human. If Step 0 shows the human's login, abort.
+- Never report the board as ready if Step 7's asserts did not pass. A board that disagrees with the
+  ledger is worse than no board — the runner would build against a lie.
+- Branch protection is not optional. A repo without the required checks live is not at Step 14.

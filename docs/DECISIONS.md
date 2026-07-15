@@ -25,7 +25,7 @@ both honest.
 | Testing & QA | Test-protection as hard block (hook + CI + ratchet); Explorer = Playwright with network-level endpoint assertions (Claude in Chrome reversed on evidence — interactive prompts, no clean interception; stays human-only via `/how-to-navigate`, mandatory once per phase at L2); smoke every 10 merges, full 4 rounds at phase close; visual: MVP functional-only, V1+ ≥2% area = P3 |
 | Specs as law | `api-frontend-reference.yaml` as source of truth; executable `verification:` blocks per issue; `issues.json` machine ledger; `[NEEDS CLARIFICATION]` markers born at the PRD, executed at preflight |
 | Contract | POLICY.md instantiated per project at freeze; `method_version` pinned; VECTOR itself semver'd and shipped as a Claude Code plugin (the plugin installs the method; the repo instantiates the contract) |
-| Scope | Project-agnostic via **profiles**: `webapp` complete in 2.0.0, `service/api` defined as strict subset, `cli/library` + `quant-pipeline` in 2.x. No single anointed live project — Phase A runs on the first pilot; the synthetic benchmark regains weight accordingly |
+| Scope | Project-agnostic via **profiles**: `webapp` complete in 2.0.0, `service-api` defined as strict subset, `cli/library` + `quant-pipeline` in 2.x. No single anointed live project — Phase A runs on the first pilot; the synthetic benchmark regains weight accordingly |
 | Naming & paper | The method remains **VECTOR** (autonomy is a level, not a version fork in the name); SSRN paper update out of scope for this cycle |
 
 ## 2. Council amendments (two audit sessions, 2026-07-14, validated)

@@ -122,11 +122,14 @@ their red-team batteries ship in `src/orchestration/hooks/`.
 | `budget-counter` | PostToolUse | Maintains on-disk attempt/cycle counters |
 | `notify` | Notification/Stop | Optional one-way Telegram ping (POLICY §12) |
 
-Settings deny-rules cover the `@`-reference read gap on frozen paths. Known residual
-gaps (inline-language writes, constructed paths, early-return test neutering, whole-file
-test overwrites) are each covered by a named downstream net: CODEOWNERS + conformance CI,
-the coverage-ratchet, and the diff-based `test-protection` CI check — defense in depth is
-a verified property, not rhetoric.
+Frozen artifacts are read freely (the reviewer and builder must read the specs to check
+conformance); the threat model is **writes**, and Edit/Write/MultiEdit/Bash are hooked
+regardless of how a file entered context, so no read-side `permissions.deny` is needed.
+Known residual gaps in the edit-time hooks (inline-language writes, constructed paths,
+early-return test neutering, whole-file test overwrites) are each covered by a named
+downstream net: CODEOWNERS + conformance CI, the coverage-ratchet, and the diff-based
+`test-protection` CI check — defense in depth is a verified property, not rhetoric
+(the two logic nets ship in `src/orchestration/ci/` with their own executed red-team battery).
 
 ## 3.2 CI required checks (merge-time layer)
 `ci-tests` (the pyramid) · `conformance` (schemathesis endpoints↔OpenAPI; migrations↔ERD

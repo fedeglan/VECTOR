@@ -46,7 +46,7 @@ Set per project in `POLICY.md`; raised only by the human, never by the loop.
 
 ## Stack & profiles
 
-The **`webapp`** profile (complete in 2.0.0) targets the reference stack: Python + FastAPI · React + Tailwind · PostgreSQL · Docker. The **`service/api`** profile is defined as a strict subset (no views/mock; API-level exploration). `cli/library` and `quant-pipeline` arrive in 2.x. Deploy profiles: `vps-compose` (reference) and `aws`.
+The **`webapp`** profile (complete in 2.0.0) targets the reference stack: Python + FastAPI · React + Tailwind · PostgreSQL · Docker. The **`service-api`** profile is defined as a strict subset (no views/mock; API-level exploration). `cli/library` and `quant-pipeline` arrive in 2.x. Deploy profiles: `vps-compose` (reference) and `aws`.
 
 ---
 
@@ -105,15 +105,20 @@ vector/
 ├── agents/                     ← vector-builder · vector-reviewer (model-pinned, isolated context)
 │                                 auto-discovered by Claude Code from this top-level dir (see note)
 ├── src/
-│   ├── commands/               ← the method's verbs (26 .md files)
+│   ├── commands/               ← the method's verbs (28 .md files)
 │   ├── templates/
-│   │   └── POLICY_TEMPLATE.md  ← the per-project autonomy contract
+│   │   ├── POLICY_TEMPLATE.md  ← the per-project autonomy contract
+│   │   ├── CODEOWNERS          ← frozen-path protection template (webapp reference)
+│   │   └── workflows/          ← the 5 CI required-check templates (webapp reference; /handover adapts)
 │   └── orchestration/
 │       ├── SPEC.md             ← the three-tier Act II spec
-│       ├── hooks/              ← the Tier-3 gate hooks + their red-team batteries
+│       ├── hooks/              ← the Tier-3 gate hooks (edit-time) + their red-team batteries
 │       │   ├── frozen_specs.py · test_protection.py · deps_guard.py
 │       │   ├── hooks.json      ← the settings wiring copied into each project
 │       │   └── tests/          ← redteam.py · redteam2.py · redteam3.py (47 red-team cases + hardening regressions)
+│       ├── ci/                 ← the merge-time logic nets (real code, not YAML)
+│       │   ├── coverage_ratchet.py · test_protection_ci.py
+│       │   └── tests/redteam_ci.py  ← executed battery (18/18)
 │       └── runner/             ← the Tier-2 relay-runner
 │           ├── README.md       ← the build contract + CLI
 │           └── tests/fsm_sim.py  ← the executable spec of the control flow (8/8)
@@ -144,7 +149,9 @@ vector/
 | `/clarify` | Structured coverage interrogation of the PRD; `[NEEDS CLARIFICATION]` markers |
 | `/mock` | Generate the Step-9 interactive prototype from the frozen-track artifacts ◆ |
 | `/freeze-design` | CONTEXT + POLICY + baselines + tag — the contract ◆ |
-| `/bootstrap-github` | Board, labels, milestones, DEV branch, branch protection, machine-user verification |
+| `/generate-issues` | Step 12: derive the backlog — `GITHUB_ISSUES.md` + `.vector/issues.json` (executable `verification:` blocks, DAG) |
+| `/handover` | Step 13: classic handover + the merge-time enforcement layer as files (CI, CODEOWNERS, CI scripts) + ops-pack |
+| `/bootstrap-github` | Step 14: board + labels (incl. needs-human/escalated) + DEV branch protection with the six required checks + machine-user verification + ledger asserts |
 | `/preflight-audit` | Ambiguity scan · coverage matrix · env dry-run · hooks red-team + revert rehearsal ◆ |
 | **Act II — Build** | |
 | `/run-phase` | The dispatcher: launch and monitor the autonomous loop for a phase |

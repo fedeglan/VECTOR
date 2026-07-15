@@ -47,7 +47,7 @@ Copy from the installed plugin's `src/orchestration/hooks/` into `<PROJECT_PATH>
 - `frozen_specs.py`, `test_protection.py`, `deps_guard.py`
 - `tests/redteam.py`, `tests/redteam2.py`, `tests/redteam3.py` (the project's own gate regression suite — Step 15 runs them in-repo)
 
-Write `<PROJECT_PATH>/.claude/settings.json` wiring the three hooks on `PreToolUse` (matcher `Edit|Write|MultiEdit|NotebookEdit|Bash`, invoked as `python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/<hook>.py"`), plus the `permissions.deny` entries for the frozen paths — these close the `@`-reference read gap. Use the plugin's `src/orchestration/hooks/hooks.json` as the reference.
+Write `<PROJECT_PATH>/.claude/settings.json` wiring the three hooks on `PreToolUse` (matcher `Edit|Write|MultiEdit|NotebookEdit|Bash`, invoked as `python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/<hook>.py"`). Use the plugin's `src/orchestration/hooks/hooks.json` as the reference. No read-side `permissions.deny` on frozen paths: the reviewer and builder must read the specs, and every write path is hooked regardless of how the file entered context.
 
 **Do not copy the slash commands.** In v2 the commands resolve globally from the installed `vector` plugin as `/vector:*` (or from `~/.claude/` for a `make install` fallback). If the human expects a `.claude/commands/` full of files as in v1, explain: **the plugin owns the method; the repo owns the contract.**
 
