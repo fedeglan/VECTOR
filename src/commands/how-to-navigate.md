@@ -4,6 +4,8 @@ Prepare the human for exploratory testing. Claude Code explains how to configure
 
 Run after `/test-plan` has passed all automated layers. This is the bridge from "Claude Code's testing" to "human's testing."
 
+> **Profile note.** The plan below is the `webapp` profile (browser views, frontend port). For `service-api` (Steps 3, 4, 9 N-A — no views), the human intent check is exercising the **generated API playground / contract examples** rather than a browser: read `docs/api-frontend-reference.yaml` (the consumer↔endpoint mapping) in place of `docs/views.md`, and produce a step-by-step plan of API calls per role with expected responses instead of screen navigation.
+
 ## Before you start
 
 Read:

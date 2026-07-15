@@ -1,81 +1,23 @@
 # /audit-plan
 
-Audit the current state of the codebase against the development plan and all project specs.
+Audit the codebase against the frozen plan and specs. Runs every 10 merges (drift check) and at the top of phase close (blocking gate). It answers one question: does what was built still match what was designed?
 
-Run this every 10 merged PRs and at the end of each phase.
-
-## Before you start
-
-Read these files in full:
-- CLAUDE.md
-- CONTEXT.md
-- SESSIONS.md
-- docs/DEVELOPMENT_PLAN.md
-- docs/api-spec.yaml
-- docs/erd.dbml
-- docs/architecture.md
-- All files in docs/research/
-
-## What to audit
-
-### 1. Plan compliance
-For every TASK in DEVELOPMENT_PLAN.md marked as done (check SESSIONS.md):
-- Do the files listed in "Files affected" actually exist?
-- Does the implementation satisfy the "Done when" criterion?
-- Flag any task marked done that does not fully satisfy its criterion.
-
-### 2. API compliance
-For every endpoint in api-spec.yaml:
-- Does a corresponding router implementation exist?
-- Does the path, method, request schema, and response schema match exactly?
-- Are the correct error codes returned?
-
-### 3. Schema compliance
-For every table in erd.dbml:
-- Does a corresponding migration exist?
-- Does the migration match the table definition exactly (column names, types, constraints, foreign keys)?
-- Does the SQLAlchemy model match the migration?
-
-### 4. Architecture compliance
-- Does the folder structure match CLAUDE.md?
-- Are all mandatory patterns present throughout the codebase?
-- Are any forbidden patterns present anywhere?
-- Does the quant package import from backend/? (must not)
-- Is there any business logic in routers? (must not)
-- Is there any direct DB access outside repositories? (must not)
-
-### 5. Quant compliance (if applicable)
-For every MSD in docs/research/:
-- Does a corresponding implementation exist in the quant package?
-- Do the inputs match the MSD?
-- Does the output type, range, and null handling match the MSD?
-- Do the known failure modes have handling in the code?
-
-### 6. Test coverage
-- Does every router have integration tests?
-- Does every service have unit tests?
-- Does every quant model have mathematical unit tests?
+## What you check
+- **Coverage:** every issue marked done has actually landed (merged PR, closed issue, code present). Every endpoint in `api-spec.yaml` for this phase exists; every entity has its migration.
+- **Conformance drift:** the implemented endpoints still match the OpenAPI (this overlaps the conformance CI check — here you catch semantic drift the schema check can't, e.g. an endpoint that matches the schema but ignores a business rule from the PRD).
+- **Architecture drift:** no forbidden pattern crept in across merges (layering, business logic in routers, cross-package imports the CONTEXT forbids).
+- **Plan drift:** the roadmap phase still describes what's being built; nothing silently expanded scope.
 
 ## Output
+A findings list. Each finding is one of:
+- **blocker** — auto-file a fix issue into the current phase and route it back through the build loop.
+- **spec-conflict** — the code and a spec genuinely disagree → escalate, don't resolve.
+- **observation** — non-blocking, logged.
 
-Write `docs/audits/audit_<phase>_<YYYY-MM-DD>.md`:
+## Cadence behavior
+- **Every 10 merges:** run the drift check; auto-file blockers; keep the loop moving.
+- **Phase close:** blocking — the phase does not proceed to acceptance with an open blocker.
 
-```
-# Audit: <phase> — <date>
-
-## Summary
-Tasks audited: N
-Blockers found: N
-Warnings found: N
-
-## Blockers (must fix before next phase)
-<numbered list — each with file, description, and required fix>
-
-## Warnings (should fix, not blocking)
-<numbered list>
-
-## Passed checks
-<summary of what is correct>
-```
-
-Log the audit in SESSIONS.md. Report the summary to the human and tell them what must be fixed before proceeding.
+## Hard rules
+- This is an audit, not a redesign. You report and route; you don't rewrite specs to match code.
+- A blocker auto-files an issue — it does not get silently fixed inline outside the gated pipeline.

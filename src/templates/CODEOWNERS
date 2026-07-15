@@ -1,0 +1,22 @@
+# CODEOWNERS — VECTOR frozen-path protection (webapp reference).
+# /vector:handover (Step 13) replaces {{HUMAN_GITHUB_USER}} with the human's GitHub handle.
+#
+# Changing a frozen design artifact or the autonomy contract requires the human's review —
+# this is the merge-time half of "specs are law" (the edit-time half is the frozen_specs hook).
+# The only sanctioned way to change these is /vector:change-scope.
+#
+# NOTE: tests/** is deliberately NOT owned here. Every issue writes tests; requiring human
+# review on tests/** would reintroduce per-PR human review and defeat autonomy. Tests are
+# protected instead by the PreToolUse hook (edit time) + the test-protection CI check (merge time).
+
+/docs/PRD.md                       @{{HUMAN_GITHUB_USER}}
+/docs/views.md                     @{{HUMAN_GITHUB_USER}}
+/docs/api-frontend-reference.yaml  @{{HUMAN_GITHUB_USER}}
+/docs/api-spec.yaml                @{{HUMAN_GITHUB_USER}}
+/docs/erd.dbml                     @{{HUMAN_GITHUB_USER}}
+/docs/research/                    @{{HUMAN_GITHUB_USER}}
+/baselines/                        @{{HUMAN_GITHUB_USER}}
+/POLICY.md                         @{{HUMAN_GITHUB_USER}}
+/CODEOWNERS                        @{{HUMAN_GITHUB_USER}}
+/.github/workflows/                @{{HUMAN_GITHUB_USER}}
+/.github/scripts/                  @{{HUMAN_GITHUB_USER}}

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vector-runner"
+version = "2.0.0"
+description = "VECTOR Tier-2 relay-runner: dispatch, spawn, poll, merge, tag, log, digest, revert"
+requires-python = ">=3.9"
+dependencies = ["pyyaml>=6"]
+
+[project.scripts]
+vector-run = "vector_runner.cli:main"
+vector-revert = "vector_runner.cli:main_revert"
+
+[tool.setuptools.packages.find]
+include = ["vector_runner*"]

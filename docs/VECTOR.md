@@ -1,846 +1,138 @@
-# The VECTOR
-> A reusable, end-to-end method for designing and building any fullstack app.
-> Python · React · PostgreSQL · Claude · Claude Code
+# VECTOR — The Method (v2.0.0)
+
+> **Definition frozen 2026-07-15.** From this version onward, changes to the method go through its own change-scope discipline: a proposed amendment, an impact assessment, a version bump. Supersedes the published 15-step v1.
+>
+> **North Star:** take what the user has in their head to a concrete production application — directly, efficiently, unequivocally, robustly.
+>
+> **Canonical surface:** Claude Code, end to end. claude.ai (or any chat surface) is a non-canonical ideation vestibule; nothing is real until it is a committed file. The process starts at `/vector:new-project`.
+
+**Scope & profiles.** VECTOR targets any software development project through **project profiles**. v2.0.0 ships the **`webapp`** profile complete — the 19 steps below as written — and defines **`service-api`** as a strict subset (see *Profiles*). Further profiles (`cli/library`, `quant-pipeline`) arrive in 2.x minors. Primary user: the method's author and his projects; open-source adoption is a deliberate by-product. The human retains legal and compliance responsibility — the method generates a launch checklist; it owns none of it. No brownfield yet, except `/upgrade-project` for VECTOR v1 repositories. **Exit guarantee:** every project is a standard repository (gitflow, tests, CI, docs) that any team can take over without VECTOR existing.
+
+**Installation — two layers.**
+1. **The method on your machine** (once): `/plugin marketplace add fedeglan/vector` → `/plugin install vector`. Installs the namespaced commands (`/vector:new-project`, `/vector:freeze-design`, `/vector:run-phase`, …) and the agents globally, versioned as a unit — updating the method is an explicit plugin action, never silent. Manual fallback: clone + `make install` (copies `commands/` and `agents/` to `~/.claude/`). The Tier-2 runner installs separately (`pipx install`, ships with the orchestration layer).
+2. **The contract in each repo** (`/vector:new-project`): the plugin gives you the *verbs*; each project needs the *contract and gates as files in its repository* — hooks wired in the project's `.claude/settings.json`, CODEOWNERS, CI workflows, `POLICY.md` — because Tier 3 is repo-native by design: a plugin can enforce nothing; versioned files plus branch protection can. **The plugin installs the method; the repo instantiates the contract.**
+
+Entry ritual — `/vector:new-project`: creates the repo skeleton, the project-level `.claude/` (settings with hook wiring, agent overrides), gitignore/LICENSE, and the folder structure. One command; everything below assumes it ran.
 
 ---
 
-## Core Principle
+## Act I — Design (human directs, AI assists; Steps 1–15)
 
-The human thinks visually. Everything else derives from what the human can see and touch.
+Human judgment is front-loaded here. Everything downstream is either derivation from what this act freezes, or an escalation.
 
-**Design of outside → in. From uncertain to stable.**
+**Driver:** `/vector:design` conducts this act — the counterpart of `/vector:run-phase` in Act II. Steps with their own command are named below; the rest run under `/design`.
 
----
+### Step 1 — Sketches
+**Owner:** human. **Inputs:** the idea. **Activities:** hand-draw screens and flows; photograph; drop into `docs/sketches/`. Ideation conversation may happen anywhere (the chat vestibule), but the artifacts land in the repo. **Outputs:** `docs/sketches/*`. **Exit:** enough raw material to interrogate.
 
-## Roles
+### Step 2 — PRD + Clarify
+**Owner:** both. **Inputs:** sketches + conversation. **Activities:** draft the PRD — problem, roles/personas, user stories per role, in/out of scope. Then `/clarify`: structured, coverage-based interrogation (functional scope, roles and permissions, data lifecycle, edge cases, integrations, non-functionals), ≤5 questions per round, answers recorded in a dated **Clarifications** section. Anything unresolved is marked **`[NEEDS CLARIFICATION]`** inline — the marker convention is born here and governs every artifact from now on: unresolved intent is *visible*, never silently interpreted. **Outputs:** `docs/PRD.md` (frozen-track). **Exit:** PRD stable; live markers may remain (they are executed at Step 15, where zero-live-markers is a launch condition).
 
-| Actor | Role |
-|---|---|
-| **You** | Think, draw, decide, validate, approve |
-| **Claude.ai** | Ask, structure, generate, derive, plan |
-| **Claude Code** | Build, audit, ship |
+### Step 3 — Wireframes
+**Owner:** both. **Inputs:** PRD stories. **Activities:** low-fidelity structure per view — layout blocks, navigation, and the three states (empty / loading / error) per view. **Outputs:** `docs/wireframes/*`. **Exit:** every user story has its views.
 
-> Never mix roles in the same session.
+### Step 4 — Views ◆
+**Owner:** both. **Inputs:** wireframes + aesthetic direction. **Activities:** define the aesthetic (palette, typography, density); render each view at high fidelity; render **locally, file → real browser** (Claude in Chrome is fine here — this is interactive human use); iterate; log approval per view in `views.md`. **Outputs:** `docs/views.md` + the approved renders — **these exact renders become `baselines/` at the freeze and are the Explorer's visual oracle**, which is why they must be produced in the same pipeline that will later screenshot them. **Gate ◆:** visual fidelity approved.
 
----
+### Step 5 — API–Frontend Reference
+**Owner:** both. **Inputs:** views + PRD. **Activities:** for every view, an action table: element → event → endpoint (method + path) → payload → expected UI result. **YAML is the source of truth** (`docs/api-frontend-reference.yaml`); the `.docx` is rendered from it. **Exit:** every interactive element mapped; unknown endpoints carry markers.
 
-## The 15 Steps
+### Step 6 — ERD
+**Owner:** both. **Inputs:** PRD + reference. **Activities:** entities, relations, constraints, indexes; point-in-time/audit fields where the domain needs them. **Outputs:** `docs/erd.dbml` (frozen-track).
 
-```
-HIGH HUMAN INVOLVEMENT
-  Step 1  · Basic Idea Visualization          (BIV)
-  Step 2  · Assisted Product Requirements     (APRW)
-  Step 3  · AI Frontend Sketching Proposal    (AFSP)
-  Step 4  · Frontend Skeleton De-codification (FSD)
+### Step 7 — OpenAPI
+**Owner:** both. **Inputs:** reference + ERD. **Activities:** full `api-spec.yaml` — paths, schemas, auth, RBAC per role, error envelope, pagination conventions — cross-checked against the reference (every mapped endpoint exists; no orphan endpoints). **Outputs:** `docs/api-spec.yaml` (frozen-track).
 
-AI DOES THE WORK · HUMAN REVIEWS
-  Step 5  · API Contract Generation           (ACG)
-  Step 6  · Data Model Generation             (DMG)
-  Step 7  · Quant Model Dev Specifications    (QMDS)  [if applicable]
-  Step 8  · Architecture Design Documentation (ADD)
-  Step 9  · Development Plan                  (DP)
-  Step 10 · Context Generation & Design Freeze(CGDF)
+### Step 8 — Model Specs
+**Owner:** both, when the app has quant/ML logic. **Activities:** one MSD per model — objective, inputs and point-in-time rules, method, outputs, validation criteria, failure modes. **Outputs:** `docs/research/msd_*.md` (frozen-track).
 
-HANDOVER
-  Step 11 · GitHub-ification                  (GHI)
-  Step 12 · Handover Preparation              (HP)
+### Step 9 — Interactive Mock ◆
+**Owner:** both. **Inputs:** views (4) + OpenAPI (7) + reference (5). **Activities:** an agent generates a clickable prototype (e.g. Vite + MSW) wiring every action-table row to mocked responses derived from the OpenAPI schemas and seed-like fixtures. The human **uses the fake application end to end, per role**. **Anti-drift rule:** the mock is *generated* from the frozen-track artifacts and *disposable* — never hand-edited; every divergence discovered while using it is fixed **in the upstream spec** (views / reference / OpenAPI / PRD) and the mock is regenerated. One contract, one oracle. **Timebox:** 2–3 days; if it takes longer, it is being built too well. **Gate ◆:** *"I used the fake app and it is what I had in my head."* This is the intent check moved to where corrections cost minutes instead of change-scopes.
 
-CLAUDE CODE TAKES OVER
-  Step 13 · GitHub Project Bootstrap          (GPB)
-  Step 14 · AI Development with Human-in-Loop (AIDH)
-  Step 15 · Phase Close Testing              (PCT)
-```
+### Step 10 — Roadmap & Phases
+**Owner:** both. **Activities:** slice scope into MVP → V1 → V2; each phase a shippable, coherent subset; per-phase coverage of views/endpoints/entities. **Outputs:** `docs/roadmap.md`. **Exit:** every PRD story assigned to a phase.
 
----
+### Step 11 — Design Freeze ◆
+**Owner:** human approves. **Activities:** generate `CONTEXT.md` (module map, conventions, architecture patterns); **instantiate `POLICY.md`** from the template — the human sets: starting `autonomy_level` (the level is the human's sovereign choice; the earned path L1→L2→L3 is the recommended default), budgets, breakers, graduation thresholds, explorer cadence and visual thresholds, notification recipients, the **deploy profile** (`vps-compose` | `aws`), and pins `method_version`; archive the Step-4 renders to `baselines/`; walk the freeze checklist; tag `design-freeze/v1`. **Gate ◆ — THE CONTRACT:** from this commit onward, specs change only via `/change-scope`; downstream ambiguity escalates, never guesses; the escalation rate becomes the design-quality KPI.
 
-## Step 1 — Basic Idea Visualization (BIV)
+### Step 12 — Issues & Ledger
+**Owner:** AI generates, human reviews by sampling. **Activities:** `GITHUB_ISSUES.md` — one self-contained issue per unit of work: context, exact task, files, **`verification:` block of executable commands whose exit codes define done**, model label, complexity label, dependencies. DAG sanity (acyclic, phase-consistent). Emit `.vector/issues.json` — the machine ledger the runner consumes. **Exit:** human spot-review; a criterion not expressible as a command or test is incomplete design and goes back upstream, not forward.
 
-**Who:** You alone
-**Time:** 30–60 min
-**Tools:** Any drawing tool — Excalidraw, Figma, paper + camera, napkin + phone
+### Step 13 — Handover & Gates
+**Owner:** AI. **Activities:** the classic handover (`CLAUDE.md`, `SESSIONS.md` skeleton, `.env.example`, `docker-compose.yml` + hermetic `docker-compose.test.yml`, Makefile, deterministic seed spec — accounts per role + fixtures) **plus the entire enforcement layer as files**: `.github/workflows/` (ci-tests: the pyramid; conformance: schemathesis endpoints↔OpenAPI + migrations↔ERD diff + import-linter architecture rules; security: gitleaks + bandit/pip-audit or npm audit; coverage-ratchet; test-protection: diff-based detector of deletions/skips/weakened assertions requiring a signed justification block); `CODEOWNERS` on frozen paths + `POLICY.md`; hooks installed (`frozen_specs`, `test_protection`, `deps_guard`, budget counters, optional notify); the **ops-pack** (see Step 19: health endpoints, tagged log schema, sanitizer, `ops/rules.yaml`, backup cron, runbook skeleton); `ESCALATIONS.md` and `.vector/` skeletons.
 
-Draw 4–6 sketches of how you imagine the app. These are not mockups. They are externalizations of what is in your head.
+### Step 14 — Bootstrap & Protection
+**Owner:** AI, authenticated as the **machine user**. **Activities:** labels (phase, model, complexity, `needs-human`, `escalated`), milestones per phase, issues pushed, project board (Backlog / In progress / In review / Done), DEV branch, **branch protection with the required checks**, machine-user permission verification, self-verifying asserts against `issues.json` (counts match). **Exit:** GitHub scaffolding live and provably consistent with the ledger.
 
-**Rules:**
-- One sketch per main view
-- No perfection required. Boxes, arrows, and labels are enough
-- Add a short paragraph in natural language describing what the app does, who uses it, and what problem it solves
-
-**Output:**
-- 4–6 images (screenshots, photos, or exports)
-- 1 short paragraph description
-
-> Claude can process hand-drawn sketches. A phone photo of a paper drawing is valid input.
+### Step 15 — Preflight & Launch Authorization ◆
+**Owner:** both. Four tracks, all must pass:
+1. **Ambiguity scan** — an adversarial, fresh-context agent reads all issues + specs hunting contradictions and non-executable criteria; **zero live `[NEEDS CLARIFICATION]` markers** is a hard condition.
+2. **Coverage matrix** — every story ↔ ≥1 endpoint ↔ ≥1 view ↔ ≥1 issue; an orphan in any direction is a finding; output formatted as a checklist ("unit tests for English").
+3. **Environment dry-run** — stack boots via compose; empty suite green in CI; `gh` authenticated as machine user; Playwright installed; `POLICY.md` parses fail-fast; notify hook reachable if enabled.
+4. **Hooks red-team + revert rehearsal** — the validated battery executed in-repo: an agent provably cannot edit a frozen spec, delete a test, add a dependency silently, or merge past a red check; one `vector-revert` executed successfully.
+**Gate ◆ — launch authorization: the last human gate of Act I.**
 
 ---
 
-## Step 2 — Assisted Product Requirements Writing (APRW)
+## Act II — Build (machine; Steps 16–17, repeated per phase MVP → V1 → V2)
 
-**Who:** You + Claude.ai
-**Time:** 30–60 min
-**Tools:** Claude.ai (new session)
+Three tiers: **Tier 1** — a Claude Code session as thin dispatcher (`/run-phase` + `/goal`; the v1 UX: open, run, watch, intervene). **Tier 2** — the deterministic relay-runner spawning **one fresh `claude -p` process per role per issue** with turn and time limits. **Tier 3** — the gates from Step 13/14, which outrank every model's judgment. The human surface: escalations, plus the digest at L2.
 
-Upload the sketches and the description. Claude reviews everything and asks a structured set of questions — no more, no less — to fully understand what you want to build.
+**Billing note (subscription mode):** under a Claude Code subscription there is no marginal token cost; budgets bind through `--max-turns` and time limits, and **subscription rate-limit windows are handled as infra-pauses** — the runner parks until the window resets and resumes from state — never as failures or breaker events. Token usage is still logged per issue for the efficiency ledger.
 
-### The fixed question set Claude must ask
+### Step 16 — Autonomous Build Loop
+**Start:** open Claude Code, run `/run-phase`. The dispatcher reads `POLICY.md` + `.vector/state.json` + `issues.json`, sets `/goal` to the phase acceptance condition (a continuation mechanism, never a verifier), and launches/monitors the relay.
 
-Claude asks these questions in plain, non-technical language. Each question is designed so that someone with no technical background can answer it in 2–3 sentences. If a sketch or the description already answers one clearly, Claude skips it.
+**Per-issue pipeline (relay-runner):**
+1. Pick the next `queued` issue whose dependencies are all `merged`.
+2. **Builder** (fresh process, model per issue label): branch from DEV → implement per the issue's self-contained prompt → run tests + self-check → push → open PR → structured JSON exit.
+3. **CI wait:** red → classify (test/build failure → next attempt with the failure log attached, ≤3 attempts total; CI infra failure → retry once, then escalate as `infra`).
+4. **Reviewer** (fresh process, model per pairing table; sees diff + issue + specs, never the builder's transcript): full checklist, **mandatory test-delta inspection**, plain-language summary (feeds the digest); verdict sets the required `reviewer-approval` status check.
+5. `CHANGES_REQUESTED` → builder fix cycle on the same branch (≤2 cycles; **third rejection escalates with both positions attached**).
+6. **Merge:** all required checks green → merge, delete branch, close issue, **annotated tag `vector/T<NNN>I<N>`** (the rollback handle), deterministic `SESSIONS.md` entry, cost/tokens accounted.
+7. **Cadence:** every 10 merges → `/audit-plan` (blockers auto-file fix issues) + Explorer smoke (rounds 1+3).
 
-**What it does**
-1. If you had to explain this app to a friend over coffee in one sentence, what would you say?
-2. Who is going to use this? Paint me a quick picture of that person — what do they do, and why would they open this app?
-3. Will there be different types of users who see different things or can do different things? For example, an admin vs. a regular user.
+**Dial behavior:** **L1** — reviewer runs in shadow (verdict recorded to `.vector/shadow.json`, compared with the human's decision; divergence = graduation telemetry); the human merges. **L2** — autonomous merges + **mandatory daily digest** (deterministic: merges with reviewer summaries, files, cost, escalations, revert handles; ~20 min; no action required to continue; revert authority applies) + **one required `/how-to-navigate` per phase** (the intent check). **L3** — digest optional (recommended ON for a project's first run). Graduation: L1→L2 at shadow divergence <10% over ≥20 PRs; L2→L3 at revert rate <2% over ≥50 merges + the benchmark. **Levels are raised only by the human, never by the loop.**
 
-**What matters most**
-4. If you could only build three things for the first version, what would they be?
-5. What are you deliberately leaving out for now — things that might be useful later but that you don't need on day one?
+**Escalation (the only ambiguity resolution):** `spec-conflict | ambiguity | budget | infra | security | review-deadlock` → entry in `ESCALATIONS.md` with the exact decision needed as a question + `needs-human` label + optional notify. **Park-and-continue:** dependents are blocked, independent DAG branches continue. Freeze-class (halt the phase): critical security finding; spec-conflict blocking >50% of the remaining DAG. Breakers: 3 consecutive terminal failures halt the run; the same test failing after 3 fix attempts escalates; Tier-1 context >50% or compaction → checkpoint + session rotation.
 
-**How it works behind the scenes**
-6. Does each user have their own private data, or does everyone see the same information?
-7. Does the app do any kind of calculation, scoring, ranking, or automatic decision-making — or does it mostly just save and display information?
-8. Does this app need to talk to any outside service? For example, pull data from somewhere, send emails, or connect to a payment system.
+**Human return path:** answer in the issue or inline; spec-conflicts must pass through `/change-scope` (freeze marker updated) before the item re-queues — enforced by timestamp comparison.
 
-**Look, feel, and limits**
-9. Are there any hard rules about how this must work — for example, users must log in with Google, it must run in a specific country, or certain data can never leave a particular server?
-10. Do you have a visual reference — a color palette, a font, another app whose look you like? If not, how would you describe the feeling you want: minimal, bold, corporate, playful?
+**Controls:** type at any moment; halt = Esc or `.vector/HALT` (takes effect at the next issue boundary); resume = restart `/run-phase` — state on disk is authoritative and kill-safe (validated by simulation pre-freeze).
 
-After receiving answers, Claude writes the PRD.
-
-**Output:** `docs/PRD.md`
-
-### PRD structure
-```
-# Product Requirements Document
-
-## Problem
-## Primary user
-## Core action
-## User types and permissions
-## In scope (v1)
-## Out of scope (v1)
-## Non-CRUD logic
-## External integrations
-## Technical constraints
-## Aesthetic direction
-## User stories
-```
+### Step 17 — Autonomous Phase Close
+Triggered when every phase issue is `merged` or `escalated`/blocked:
+1. `/audit-plan` — blocking; blockers auto-file fix issues → back to the loop.
+2. `/test-plan` (fast) — failures classified: **code-bug** → auto `/debug` + fix + mandatory regression test; **test-bug** → fix with justification + reviewer sign-off on the delta; **flaky** → retry ×2 → quarantine + auto-filed issue; **spec-conflict** → escalate, never resolve by choice.
+3. `/explore` (full, Playwright): **Round 1** — happy paths per role: walk every row of the api-frontend-reference, **intercept network traffic, assert the exact mapped endpoint + method fired**, assert a sane UI response. **Round 2** — edge battery: empty states, invalid forms, refresh mid-flow, back/forward, session expiry. **Round 3** — views flagged by the phase's merged PRs via the CONTEXT module map. **Round 4** — screenshots at 3 viewports, diff vs `baselines/` per POLICY thresholds, a11y. Every finding → `BUG_BACKLOG.md` in `/report-bug` format, severity by rubric (P0 flow broken · P1 wrong/failed endpoint · P2 state/UX anomaly · P3 visual over threshold), **screenshot + network log attached**.
+4. `/fix-bugs` (auto): the matrix executes without an approval gate; P0 one per batch; every fix PR passes the full step-16 gate sequence; deferrals logged with justification.
+5. `/test-plan` (thorough) — regressions send it back to 4.
+6. **Acceptance:** 0 P0 · 0 P1 or justified deferral · audit clean → phase report → **notify-and-continue** into the next phase. 16↔17 repeat until V2 is done.
 
 ---
 
-## Step 3 — AI Frontend Sketching Proposal (AFSP)
+## Act III — Production (shared; bind, not build)
 
-**Who:** Claude.ai (same session as Step 2)
-**Time:** 30–45 min
-**Tools:** Claude.ai → visual tool of choice for editing
+### Step 18 — Release ◆
+Human-invoked `/promote`. **Preconditions:** phase accepted, DEV green. **Pipeline:** deploy to **staging** on the project's **deploy profile** — `vps-compose` (reference implementation: compose + reverse proxy + systemd; staging = separate compose project with synthetic seed) or `aws` (requirements-level; for compute/user scale that demands it) — chosen at Step 11, minimal IaC generated at Step 13 → **Explorer smoke against staging** (the same agent, reused as the release gate) → **◆ human GO — the single production human gate** → deploy to prod → post-deploy verification (health checks + smoke) → rollback path rehearsed (deploy rollback + the `vector-revert` discipline). Release policy lives as a POLICY section.
 
-Based on the PRD, Claude produces a complete frontend proposal. The human does not write anything here — only reviews and edits visually.
-
-### What Claude generates
-
-**A. View list**
-Every view the frontend requires — no more, no less. For each view:
-- Name
-- Short description (1–2 sentences for mental visualization)
-- Data it needs (inputs and outputs)
-- A concise generation prompt (usable in any LLM)
-
-**B. Visual artifact per view**
-Claude runs each prompt and generates the view as an HTML + Tailwind artifact rendered inline. This is for visualization and communication only — not the final React code.
-
-**C. Navigation flow diagram**
-A Mermaid flowchart showing how views connect and in what order.
-
-```mermaid
-flowchart LR
-  Login --> Dashboard
-  Dashboard --> PortfolioView
-  Dashboard --> ScreenerView
-  PortfolioView --> AssetDetail
-```
-
-**Output:** `docs/views.md` + Mermaid diagram embedded
-
-### Human action
-Use your visual tool of choice to edit the views:
-- **Figma** — recommended for aesthetic precision (colors, fonts, spacing, components)
-- **Excalidraw** — recommended for speed (layout and flow changes)
-
-Iterate until the views represent what you want to build at ~90% fidelity.
-
-**Gate:** Human approves views and navigation flow before proceeding.
+### Step 19 — Operate & Evolve
+**Designed 2026-07-15** — full specification in `docs/OPERATIONS.md`; observation-dependent items are dated calibration points, not gaps. Principles: **bind, not build**, and the **ops cost ladder** — **Tier D** deterministic rules (always on, ~zero cost: uptime probes, threshold alerts, log pattern matchers, supervised restarts, backups) → **Tier L** optional small local LLM (guardrailed: sanitized input only, bounded schema-validated JSON out, no tools, no network; degrades to raw counts) → **Tier C** Claude, **human-invoked only** (`/triage`, postmortems), never resident in production. Attention contract: immediate pages for criticals — the human manages silence on-device — plus a ~30-minute weekday morning triage window as the only scheduled ops attention. Hard requirements built in: **(a) production-injection controls** — UGC tagged at log-schema level, sanitized before any model sees it, raw logs human-eyes-only; **(b) live-data migration discipline** — expand-contract deploys, backfills with resume, rehearsal on anonymized prod snapshots, a migration gate in that change's `/promote`; **(c) honest solo-ops** — degradation defaults (maintenance banner + read-only), no on-call theater. Incidents enter via `/report-bug` into the severity matrix and the existing hotfix path. **Evolve:** intent changes via `/change-scope` — the frozen spec governs the application in production, forever; new features re-enter Act II as a new phase at the project's dial level; dependency updates arrive as deps-guard escalations resolved in a maintenance phase. Exit guarantee holds.
 
 ---
 
-## Step 4 — Frontend Skeleton De-codification (FSD)
+## Profiles
 
-**Who:** Claude.ai
-**Time:** 1–2 hrs
-**Tools:** Claude.ai (same session)
+A profile marks each step **applicable / N-A / swapped**; a step marked N-A drops out of preflight's coverage matrix automatically.
 
-Claude takes the approved views (images or exports from Step 3) and converts each one to React + Tailwind. All backend data is mocked. The output is a fully navigable frontend.
+- **`webapp`** (v2.0.0, complete): all 19 steps as written above.
+- **`service-api`** (v2.0.0, defined): a strict subset — Steps 3, 4 and 9 are N-A (no views, no visual baselines, no mock; the intent check moves to contract examples plus a generated API playground the human exercises), Step 5 becomes a consumer↔endpoint mapping, and the Explorer swaps to API-level probing (schemathesis + scenario contract tests against staging). Everything else — freeze, POLICY, issues, gates, autonomous loop, release, operate — is identical.
+- **`cli/library`** and **`quant-pipeline`** (MSD-centric): 2.x minors.
 
-**Rules:**
-- One component file per view
-- Mock data lives in `/frontend/src/mocks/`
-- No real API calls — all data is hardcoded in mocks
-- Navigation must match the Mermaid diagram from Step 3
+## Cross-cutting
 
-**Output:** A navigable React + Tailwind frontend with all views and mocked data.
+**Invariants → enforcement:** (1) specs are law — hooks + CODEOWNERS + conformance CI + `/change-scope` as the only mutation path; (2) builder ≠ reviewer — fresh process per role, reviewer tier ≥ builder; (3) deterministic gates outrank model judgment — branch protection makes merge mechanically impossible otherwise; (4) every fix ships a regression test; (5) tests are protected artifacts — hook at edit time, `test-protection` check at merge time, coverage-ratchet as the net for neutered tests; (6) everything budget-bounded — flags + on-disk counters + breakers; (7) full traceability — JSON-authoritative state, `SESSIONS.md`/`ESCALATIONS.md` as human mirrors.
 
-### Human action
-Run the frontend locally. Navigate through every view. Iterate with Claude until the visual result matches what you want to build. This is the last step where aesthetic decisions are made.
+**Human-time accounting (the North Star ledger):** Act I design work + five gates (views, mock, freeze, launch, GO) · escalations · ~20 min/day of digest while at L2 · one GO per release. Metric tracked from project one: total human-hours head→production and cost per shipped feature; if v2 does not beat v1 by project two or three, the definition failed by its own standard.
 
-**Gate:** Human approves the frontend at ~90% visual fidelity before proceeding.
-
----
-
-> From here, Claude does the heavy work. The human reviews and approves.
-
----
-
-## Step 5 — API Contract Generation (ACG)
-
-**Who:** Claude.ai
-**Time:** 30–45 min
-
-Claude reads the React components and mock data from Step 4 and derives the full API contract.
-
-**Output A:** `docs/api-spec.yaml` — complete OpenAPI 3.1 spec including:
-- Every endpoint (method, path, description)
-- Request schemas (body, query params, path params)
-- Response schemas (success and error)
-- HTTP error codes per endpoint
-
-**Output B:** A human-readable summary in markdown — one table per endpoint group, written for understanding, not implementation.
-
-**Output C:** `docs/api-frontend-reference.docx` — a Word document that maps every page and every UI action to the exact API endpoint it calls. For each view:
-- A screenshot of the view (from Step 4 artifacts)
-- A table with columns: Action, Interaction Type (button/tab/link/background action/toggle/form), HTTP Method, Endpoint Path, Notes
-- Interaction types include: button, tab, link, background action (fires automatically — page load, poll, auto-refresh), toggle, row, panel, form
-- Includes a legend explaining all interaction types and HTTP methods
-- All endpoints prefixed with `/api/v1`
-
-This document serves as the definitive reference connecting what the user sees to what the backend must serve. Every UI action must map to an endpoint and vice versa.
-
-**Gate:** Human reviews and approves. Iterate until correct.
-
----
-
-## Step 6 — Data Model Generation (DMG)
-
-**Who:** Claude.ai
-**Time:** 30–45 min
-
-Claude derives the data model from the API contract.
-
-**Output A:** `docs/data-model.md` — domain model in plain markdown (business entities and relationships, no column types yet)
-
-**Output B:** `docs/erd.dbml` — physical schema in dbdiagram DSL including:
-- All tables with column names and types
-- Foreign keys and constraints
-- Indexes for all query patterns
-
-**Output C:** A plain-language explanation of the schema — written for understanding, not implementation.
-
-**Gate:** Human reviews and approves. Iterate until correct.
-
----
-
-## Step 7 — Quantitative Model Dev Specifications (QMDS)
-
-**Who:** You + Claude.ai
-**Time:** Variable (30–90 min per model)
-**Skip if:** The app has no non-CRUD logic
-
-For each quantitative model, Claude runs an assisted process to produce a Model Specification Document (MSD). The process has two paths depending on how well-defined the model is.
-
----
-
-### Path A — Model is well-defined
-
-The human already knows the logic, the inputs, and the expected output. Claude asks four questions and drafts the MSD directly.
-
-**Claude asks:**
-1. What does this model produce, and who or what uses that output?
-2. What raw data does it need, and where does that data come from?
-3. Walk me through the logic step by step, as if explaining to a smart person who is not a mathematician.
-4. Are there any academic papers, existing implementations, or prior work this is based on?
-
-Claude then produces the full MSD.
-
----
-
-### Path B — Model is not well-defined
-
-The human has a goal but is not sure how to achieve it. Claude runs a structured disambiguation process before writing the MSD.
-
-**Stage 1 — Goal clarification**
-Claude asks:
-1. What decision or action should this model make easier or better?
-2. What information do you have available that could be relevant to that decision?
-3. What would a good output look like? How would you use it?
-
-**Stage 2 — Approach proposal**
-Based on the answers, Claude proposes 2–3 concrete methodological approaches. For each it explains:
-- What the model does in plain language
-- What inputs it requires
-- What the output looks like
-- Pros and cons relative to the other options
-- A complexity estimate (simple / moderate / complex)
-
-The human selects one approach or asks Claude to combine elements.
-
-**Stage 3 — Specification**
-Claude asks the same four questions as Path A, now that the approach is clear, and produces the MSD.
-
----
-
-### MSD structure
-
-```
-# MSD: <Model Name>
-
-## Objective
-## Universe and inputs
-| Input | Source | Frequency | Point-in-time | Missing data rule |
-
-## Mathematical specification
-<LaTeX>
-
-## Parameters
-| Parameter | Value | Justification |
-
-## Expected output
-- Type, index, value range, null handling
-
-## Known failure modes
-- Conditions under which the model produces unreliable output
-
-## Validation tests
-- Mathematical properties to verify (range, monotonicity, distribution)
-- Lookahead bias check
-- Benchmark: does it produce sensible rankings on historical data?
-```
-
-**Output:** `docs/research/msd_<model>.md` + `research/<model>.ipynb` skeleton
-
-**Gate:** Human reviews and approves each MSD before proceeding.
-
----
-
-## Step 8 — Architecture Design Documentation (ADD)
-
-**Who:** Claude.ai
-**Time:** 30–45 min
-
-Claude designs the full system architecture from all prior documents.
-
-**Output A:** C4 diagram in Mermaid (Context + Container levels)
-
-**Output B:** `docs/architecture.md` including:
-- Layer diagram: Router → Service → Repository → Models (+ Quant layer if applicable)
-- Folder structure for backend and frontend
-- Key ADRs (one per non-obvious decision)
-
-**Output C:** Patterns document:
-- Mandatory patterns (e.g. "all DB access goes through the repository layer")
-- Forbidden patterns (e.g. "no business logic in routers")
-
-### ADR format
-```
-# ADR-00N: <Title>
-Status: Accepted
-Date: YYYY-MM-DD
-
-## Context
-## Decision
-## Alternatives considered
-## Consequences
-```
-
-**Gate:** Human reviews and approves. Iterate until correct.
-
----
-
-## Step 9 — Development Plan (DP)
-
-**Who:** Claude.ai
-**Time:** 1–2 hrs
-
-Claude reads all prior documents and produces a detailed, task-by-task development plan. This is the bridge between design and implementation — it must be precise enough for a coding agent to pick up any task and execute it without ambiguity.
-
-The plan must:
-- Be task-by-task, not phase-by-phase
-- Follow dependency order: DB → Backend → Quant layer → Frontend → Integration
-- Have explicit phases (MVP, V1, V2) so a working version always exists
-- Each phase must be independently deployable
-- Include scheduling with start dates, ETAs, model assignment (Haiku/Sonnet/Opus), and complexity assessment
-- Include a build order summary showing the day-by-day execution sequence
-- Include verification checklists mapping every ERD table, API endpoint, and MSD to tasks
-
-**Output:** `docs/DEVELOPMENT_PLAN.md`
-
-**Gate:** Human reviews and iterates until the plan is correct and complete.
-
----
-
-## Step 10 — Context Generation & Design Freeze (CGDF)
-
-**Who:** Claude.ai
-**Time:** 30–45 min
-
-Claude synthesizes all prior documents into the context files needed for Claude Code, then runs the design freeze checklist.
-
-### Part A — Context Documents
-
-**Output A:** `CONTEXT.md` (repo root) — everything Claude Code needs to understand the project holistically:
-- App description (2–3 sentences)
-- Stack with exact versions (Python, FastAPI, React, Tailwind, PostgreSQL, etc.)
-- Summary of the development plan (phases, milestones, key dependencies)
-- Summary of each MSD (model name, input, output, location of full spec)
-- Summary of each ADR decision
-- External integrations and their credentials format
-- Known failure modes across all quant models
-- Link map: which docs/research file corresponds to which backend module
-- Reference to SESSIONS.md for session-by-session traceability
-
-### Part B — Design Freeze
-
-Present this checklist and ask the human to confirm each item:
-- [ ] PRD approved
-- [ ] All views approved at ~90% fidelity
-- [ ] API contract approved
-- [ ] API-frontend reference approved
-- [ ] ERD approved
-- [ ] All MSDs approved (if applicable)
-- [ ] Architecture approved
-- [ ] Development plan approved
-- [ ] CONTEXT.md approved
-
-When all items confirmed, append to CONTEXT.md:
-```
-DESIGN FREEZE: YES — <date>
-```
-
-**Rule:** No scope changes after this point without returning to the relevant step, regenerating the affected documents, and updating CONTEXT.md. The code and the design must always be in sync.
-
-**Gate:** Human approves CONTEXT.md and confirms the design freeze.
-
----
-
-## Step 11 — GitHub-ification (GHI)
-
-**Who:** Claude.ai
-**Time:** 1–2 hrs
-
-Claude transforms the development plan into GitHub-ready issues and a visual Gantt chart.
-
-### Output A: `docs/GITHUB_ISSUES.md`
-
-A single document containing every issue in execution order. Each task with N prompts in the development plan produces exactly N issues. Issues are numbered as `T<TASK>I<ORDINAL>` (e.g., `T001I1`, `T019I3`).
-
-Each issue must be fully self-contained — the issue text IS the agent prompt. The agent reads the issue, implements it, and produces a correct result without needing to open any other file.
-
-Per-issue format:
-```markdown
----
-
-## T<NNN>I<N>: <action verb> <what>
-
-**Task**: TASK-<NNN> (<task title>) — Issue <N> of <total>
-**Labels**: `phase:<phase>`, `type:<type>`, `model:<model>`, `complexity:<low|medium|high>`
-**Depends on**: T<NNN>I<N>
-**Start date**: <YYYY-MM-DD>
-**End date**: <YYYY-MM-DD>
-**ETA**: <time>
-
-### What to do
-<Direct instruction to the agent>
-
-### Context — read before implementing
-<Inline all relevant specs, patterns, conventions>
-
-### Specification
-<DBML, OpenAPI, MSD fragments inlined>
-
-### Patterns
-- ✅ <mandatory>
-- ❌ <forbidden>
-
-### Acceptance criteria
-- [ ] <testable criterion>
-
-### What NOT to do in this issue
-<Out of scope items>
-```
-
-### Output B: `docs/project-gantt.html`
-
-A self-contained HTML file with an interactive Gantt chart visualization. Features:
-- Plotly.js-based timeline with task bars
-- Color coding by category (Infrastructure, Models, Repositories, Services, Routers, Quant, Frontend, Tests)
-- Toggle buttons: color by Category/Model/Complexity
-- Phase filter buttons: All/MVP/V1/V2
-- Summary stats: task count per phase, agent hours, review hours
-- Hover tooltips with full task details (ETA, model, complexity, dependencies, files)
-- Milestone markers (MVP complete, V1 complete, V2 complete)
-- Dark theme, DM Sans font
-
-**Gate:** Human reviews the issue list and Gantt chart before proceeding.
-
----
-
-## Step 12 — Handover Preparation (HP)
-
-**Who:** Claude.ai
-**Time:** 30–45 min
-
-Claude prepares the repository so Claude Code can start working immediately from Issue #1. This is the bridge between design and execution.
-
-### What Claude produces
-
-**A. `CLAUDE.md` (repo root)** — the law for Claude Code:
-- App description (2–3 sentences)
-- Stack with exact versions
-- Folder structure
-- Naming conventions (files, functions, variables, DB tables)
-- Code style and aesthetic preferences
-- Mandatory and forbidden patterns (from architecture.md)
-- How to run the app locally
-- How to run migrations
-- How to run tests
-- Git workflow: branch naming (`feat/TXXX-short-desc`), commit message format, PR conventions
-- Reference to CONTEXT.md for project understanding
-- Reference to SESSIONS.md for session traceability
-
-**B. Verify folder structure** — confirm the project scaffold matches architecture.md. If any directories are missing, list them for the human to create.
-
-**C. Starter files** — any boilerplate files needed for Issue #1 to start cleanly:
-- `.env.example` with all required environment variables
-- `requirements.txt` or `pyproject.toml` with pinned dependencies
-- `package.json` with frontend dependencies
-- `docker-compose.yml` skeleton
-- `Makefile` or scripts for common commands
-- `SESSIONS.md` initialized with header and format template
-
-**D. `SESSIONS.md` (repo root)** — initialized with the format template:
-```markdown
-# Sessions Log
-
-## Format
-Each session entry records:
-- Session number and date
-- Issues completed (with PR links)
-- Issues attempted but blocked
-- Key decisions made
-- State of the system at session end
-- Next session should start with
-
----
-
-## Session 1 — <date>
-(to be filled by Claude Code)
-```
-
-**Gate:** Human verifies that the repo is ready. Claude Code should be able to `cd` into the project, read CLAUDE.md + CONTEXT.md + SESSIONS.md, and start on Issue #1 with zero setup friction.
-
----
-
-## Step 13 — GitHub Project Bootstrap (GPB)
-
-**Who:** Claude Code
-**Time:** 30–45 min
-
-The first thing Claude Code does when it takes over. Run `/bootstrap-github` to convert the issues document into a live GitHub project.
-
-### What Claude Code does
-
-1. Read `docs/GITHUB_ISSUES.md`
-2. Create a GitHub Project board for the repo
-3. For each issue in the document, create a GitHub issue with:
-   - Title: exact issue title from the document
-   - Body: full issue content (the agent prompt)
-   - Labels: `phase:<phase>`, `type:<type>`, `model:<model>`, `complexity:<level>`
-   - Start date and end date (so the GitHub Gantt/timeline view is populated)
-4. Create milestones: MVP, V1, V2 — assign issues to the correct milestone
-5. Verify: all issues created, all labels applied, all dates set, project board visible
-
-**Output:** A GitHub Project with all tasks loaded, dated, labeled, and ready to be worked through sequentially.
-
-**Gate:** Human verifies the GitHub Project board is correct.
-
----
-
-## Step 14 — AI Development with Human-in-the-Loop (AIDH)
-
-**Who:** Claude Code + You
-**Tools:** Claude Code · GitHub · GitHub Projects
-
-This is the core development loop. One issue at a time, with full gitflow and session traceability.
-
-### Per-issue cycle via `/ship-issue`
-
-```
-Claude Code reads CLAUDE.md + CONTEXT.md + SESSIONS.md
-      ↓
-Creates branch from DEV: feat/TXXX-short-desc
-      ↓
-Implements the issue (runs /solve-issue)
-      ↓
-Self-reviews the PR (runs /review-pr)
-      ↓
-Opens PR targeting DEV branch
-      ↓
-Human reviews the PR
-  · Visual check if frontend
-  · Logic check if backend or quant
-  · Requests changes or approves
-      ↓
-Merge to DEV
-      ↓
-Mark issue as done, link PR to issue
-      ↓
-Delete branch, checkout DEV
-      ↓
-Log session in SESSIONS.md
-      ↓
-Next issue
-```
-
-### Session traceability
-
-At the end of each coding session (or batch of issues), Claude Code appends an entry to `SESSIONS.md`:
-
-```markdown
-## Session N — YYYY-MM-DD
-
-### Completed
-- T001I1: Bootstrap database (#PR-1)
-- T002I1: Create user ORM models (#PR-2)
-
-### Blocked
-- (none)
-
-### Decisions
-- Chose Alembic over raw SQL for migrations (ADR-003)
-
-### System state
-- DB schema created, FastAPI running on :8000, /docs accessible
-- All tests passing (4/4)
-
-### Next session
-- Start with T005I1: Pydantic schemas — auth
-```
-
-When a new coding session starts, Claude Code reads CLAUDE.md → CONTEXT.md → SESSIONS.md (latest entry) and has complete context to continue.
-
-### Audit cadence
-Every 10 PRs or at the end of each phase, Claude Code audits the full codebase via `/audit-plan`.
-
-**Output of audit:** `docs/audits/audit_<phase>_<date>.md`
-
----
-
-## Step 15 — Phase Close Testing (PCT)
-
-**Who:** Claude Code + You
-**Trigger:** End of each phase (MVP, V1, V2, etc.)
-
-Testing is the weakest link in most LLM-assisted development. AI-generated code passes unit tests cleanly but breaks user flows in ways only E2E and human exploration catch. Step 15 closes this gap with a structured two-part workflow: automated pyramid testing by Claude Code, then exploratory testing by the human with a formal bug reporting and fix loop.
-
-Four commands drive this step: `/test-plan`, `/how-to-navigate`, `/report-bug`, `/fix-bugs`.
-
-### The flow
-
-```
-┌────────────────────────────────────────────────────────────┐
-│ Phase close begins                                         │
-└────────────────────────────────────────────────────────────┘
-                         ↓
-┌────────────────────────────────────────────────────────────┐
-│ /test-plan                                                 │
-│ Claude Code runs the full testing pipeline in 3 phases:    │
-│                                                             │
-│   Phase 1 — Audit existing corpus                          │
-│     · Inventory tests written during development           │
-│     · Measure coverage + qualitative smells                │
-│     · Identify gaps per module and per layer               │
-│                                                             │
-│   Phase 2 — Complete the suite (3 streams)                 │
-│     · Stream A: fix broken/smelly tests                    │
-│     · Stream B: expand unit + integration where gaps       │
-│     · Stream C: build missing layers from scratch          │
-│       (security, E2E, UX/UI visual, performance)           │
-│                                                             │
-│   Phase 3 — Execute (budget: ≤20m)                         │
-│     · Layer 1: Unit            ≤ 60s                       │
-│     · Layer 2: Integration     ≤ 3m                        │
-│     · Layer 3: Security        ≤ 2m                        │
-│     · Layer 4: E2E             ≤ 5m                        │
-│     · Layer 5: UX/UI visual    ≤ 3m                        │
-│     · Layer 6: Performance     ≤ 5m (V1+ only)             │
-│                                                             │
-│ Output: docs/testing/test_plan_<phase>_<date>.md           │
-└────────────────────────────────────────────────────────────┘
-                         ↓
-            ┌────────────┴────────────┐
-            ↓                         ↓
-      If failures              If all passed
-            ↓                         ↓
-      /debug + fix              /how-to-navigate
-            ↓                         ↓
-      re-run /test-plan         Claude Code prepares human with:
-                                  · .env config changes needed
-                                  · How to start the system
-                                  · Test credentials per role
-                                  · 4-round navigation plan:
-                                    Round 1 — happy paths per role
-                                    Round 2 — edge cases
-                                    Round 3 — views flagged for this phase
-                                    Round 4 — responsive check
-                                  · Specific things to double-check
-                                         ↓
-┌────────────────────────────────────────────────────────────┐
-│ Human explores the app                                     │
-│                                                             │
-│ Following the navigation plan (or deviating — that's fine) │
-│                                                             │
-│ For each issue found:                                      │
-│   /report-bug                                              │
-│   · Claude Code asks structured questions                  │
-│   · Captures title, steps, expected vs actual, severity    │
-│   · Appends to docs/testing/BUG_BACKLOG.md                 │
-│                                                             │
-│ Severity levels:                                           │
-│   · P0  blocker  — cannot use the app                      │
-│   · P1  major    — core feature broken                     │
-│   · P2  minor    — works with issues                       │
-│   · P3  cosmetic — visual polish                           │
-│   · IMP          — improvement, not a bug                  │
-└────────────────────────────────────────────────────────────┘
-                         ↓
-┌────────────────────────────────────────────────────────────┐
-│ /fix-bugs                                                  │
-│                                                             │
-│ Phase 1 — Analyze                                          │
-│   · Deduplicate and group related bugs                     │
-│   · Enrich quick-mode bugs with code inspection            │
-│   · Categorize (backend/frontend/quant/infra/UX)           │
-│   · Estimate effort and risk per bug                       │
-│   · Assign priority based on severity × current phase      │
-│                                                             │
-│ Phase 2 — Propose plan                                     │
-│   · Build fix batches (P0 = 1 bug per batch, P3 = up to 10)│
-│   · Sequence: P0 → P1 → P2 → P3                            │
-│   · Present to human for review                            │
-│                                                             │
-│ Phase 3 — Execute (after human approval)                   │
-│   · For each batch: branch from DEV                        │
-│   · Reproduce each bug                                     │
-│   · Identify root cause                                    │
-│   · Implement fix + mandatory regression test              │
-│   · PR, human review, merge, cleanup                       │
-│   · Update backlog: 🟡 open → 🔵 triaged → 🟢 fixed         │
-│                                                             │
-│ Phase 4 — Verify                                           │
-│   · Re-run /test-plan to confirm no regressions            │
-│   · Check phase acceptance criteria                        │
-└────────────────────────────────────────────────────────────┘
-                         ↓
-            Phase acceptance criteria met?
-            · 0 P0 bugs open
-            · 0 P1 bugs open (or explicitly deferred)
-            · /test-plan passes with no regressions
-                         ↓
-                    ┌────┴────┐
-                    ↓         ↓
-                   No        Yes
-                    ↓         ↓
-          keep testing    Phase accepted ✅
-                            Move to next phase
-```
-
-### Artefacts generated during Step 15
-
-```
-docs/testing/
-├── test_plan_<phase>_<date>.md  ← audit + completion plan + execution report
-├── BUG_BACKLOG.md               ← all bugs with status lifecycle
-└── (test files added to tests/ under appropriate layer subdirs)
-```
-
-### Gate
-
-The phase is formally accepted when:
-- All automated test layers pass (unit + integration + security + E2E + UX/UI + performance if V1+)
-- Zero P0 bugs open
-- Zero P1 bugs open (or explicitly deferred by the human with written justification in the backlog)
-- No regressions introduced by fixes
-
----
-
-## Repository Structure
-
-```
-/ (root)
-├── CLAUDE.md
-├── CONTEXT.md
-├── SESSIONS.md
-├── docs/
-│   ├── PRD.md
-│   ├── views.md
-│   ├── api-spec.yaml
-│   ├── api-frontend-reference.docx
-│   ├── data-model.md
-│   ├── erd.dbml
-│   ├── architecture.md
-│   ├── DEVELOPMENT_PLAN.md
-│   ├── GITHUB_ISSUES.md
-│   ├── project-gantt.html
-│   ├── adrs/
-│   │   └── 00N-<title>.md
-│   ├── research/
-│   │   ├── msd_<model>.md
-│   │   └── <model>.ipynb
-│   ├── audits/
-│   │   └── audit_<phase>_<date>.md
-│   └── testing/...
-├── backend/
-│   ├── api/
-│   ├── services/
-│   ├── repositories/
-│   ├── models/
-│   ├── schemas/
-│   ├── quant/
-│   └── core/
-└── frontend/
-    └── src/
-        ├── views/
-        ├── components/
-        └── mocks/
-```
-
----
-
-## Commands Reference (Claude Code)
-
-| Command | What it does |
-|---|---|
-| `/bootstrap-github` | Convert GITHUB_ISSUES.md into live GitHub Project with issues, labels, dates |
-| `/ship-issue` | Full gitflow: branch → implement → self-review → PR → wait for human → merge → cleanup → log |
-| `/solve-issue` | Implement a specific issue, with guidance for when things break |
-| `/review-pr` | Review a PR against all specs |
-| `/explain-pr` | Explain the PR in very simple terms |
-| `/audit-plan` | Audit the codebase against the development plan |
-| `/change-scope` | Request a design change after the freeze |
-| `/debug` | Analyze and fix broken things in the codebase |
-| `/test-plan` | Audit existing tests, complete the suite, execute all layers, produce report |
-| `/how-to-navigate` | Prepare human for exploratory testing: setup, credentials, navigation plan |
-| `/report-bug` | Capture a bug report with structured fields, append to BUG_BACKLOG.md |
-| `/fix-bugs` | Analyze backlog, propose fix plan, execute after human review |
-
----
-
-## The Method in One Line
-
-> Draw it → derive it → plan it → freeze it → build it → test it.
+**Method versioning:** VECTOR carries semver + `CHANGELOG.md` and ships as a Claude Code plugin — updating the method is an explicit plugin action, never silent; each project pins `method_version` in `POLICY.md` at its freeze. A design frozen against a floating method is not frozen.
