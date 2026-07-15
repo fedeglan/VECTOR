@@ -109,3 +109,23 @@ Step 19 calibration points executed on their dated triggers.
   with deps-guard escalation, egress restriction recommended; production-side: the UGC
   sanitizer chain. Residual: injected content inside legitimate pinned documentation —
   accepted and monitored via digest.
+
+## 6. Findings from the first pilot (`linksaver`, service-api, 2026-07-15)
+
+The first end-to-end pilot (`vector-pilot-linksaver`, taken Act I → phase close with a subagent
+playing the human at every gate) validated the machinery and surfaced two findings worth acting on:
+
+- **The freeze checklist under-scrutinizes the error-response contract.** The phase-close Explorer
+  (schemathesis) found 8 contract defects the frozen `api-spec.yaml` carried through Step 15 —
+  undocumented `422`s, an `Error` schema that misdescribed the validation-error body, an over-loose
+  `url`. The escalation-rate KPI doing its job, but pointed at the *design gate*: `/freeze-design`
+  (Step 11) and `/preflight-audit` (Step 15) should assert **error-response completeness** — every
+  operation documents its `4xx`/`422` responses and their schemas — not only that the YAML parses and
+  the happy path maps. (Some of this is already implemented: `/freeze-design` now YAML-validates the
+  frozen specs; the error-contract check is the open item.)
+- **Any repo-visibility change silently drops branch protection (free plan).** Toggling the pilot
+  repo private↔public removed DEV protection without warning, so a stretch of merges ran unenforced
+  until it was re-applied. `/bootstrap-github` and Step-19 operations must **re-verify and re-apply
+  branch protection after any visibility or plan change** — and the "CODEOWNERS backstops frozen
+  paths" guarantee holds only while protection is actually applied (verified: with protection active,
+  a frozen-path PR is correctly `BLOCKED` for a single identity; with it dropped, it merges CLEAN).
