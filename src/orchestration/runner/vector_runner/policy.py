@@ -92,6 +92,20 @@ def parse(path):
     if lv not in ("L0", "L1", "L2", "L3"):
         raise PolicyError(f"invalid autonomy_level: {lv!r}")
 
+    # Type-validate numeric config at PARSE time — presence alone let string budgets
+    # (e.g. build_attempts: "3") through and crashed the runner mid-run AFTER state was
+    # written (fail-slow). Coerce/validate here so a bad type fails fast, before any run.
+    for section, key in (("budgets", "build_attempts"), ("budgets", "review_cycles"),
+                         ("budgets", "minutes_per_issue"), ("budgets", "hours_per_run"),
+                         ("breakers", "consecutive_terminal_failures")):
+        val = merged[section][key]
+        if isinstance(val, bool) or not isinstance(val, int):
+            raise PolicyError(
+                f"POLICY.md {section}.{key} must be an integer, got {val!r} "
+                f"({type(val).__name__}) — refusing to start")
+        if val <= 0:
+            raise PolicyError(f"POLICY.md {section}.{key} must be > 0, got {val}")
+
     merged["_fingerprint"] = hashlib.sha256(text.encode()).hexdigest()[:12]
     return merged
 

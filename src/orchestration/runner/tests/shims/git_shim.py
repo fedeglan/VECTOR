@@ -12,6 +12,8 @@ def main():
         fh.write(json.dumps(args) + "\n")
     if args[:2] == ["rev-list", "-n"]:
         print("cafebabecafebabe")
+    elif args[:2] == ["tag", "-l"]:
+        pass  # no persisted tags in the shim: report "does not exist" -> caller creates
     return 0
 
 

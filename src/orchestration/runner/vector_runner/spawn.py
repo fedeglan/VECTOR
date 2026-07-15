@@ -59,15 +59,23 @@ class SpawnResult:
         self.raw = raw
 
 
+FINAL_JSON_BLOCK = re.compile(r"```json\s*(\{.*?\})\s*```\s*$", re.S)
+
+
 def _extract_exit_block(text):
-    """Last fenced json block wins (the FINAL message's block)."""
-    blocks = JSON_BLOCK.findall(text or "")
-    for candidate in reversed(blocks):
-        try:
-            return json.loads(candidate)
-        except json.JSONDecodeError:
-            continue
-    return None
+    """The exit block must be the FINAL content of the final message — not any fenced
+    block anywhere in the transcript. A builder that prints an EXAMPLE json block and
+    then fails must NOT be read as a successful exit (R-SPN-04). We require the block to
+    be the last non-whitespace bytes of the result."""
+    if not text:
+        return None
+    m = FINAL_JSON_BLOCK.search(text)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except json.JSONDecodeError:
+        return None
 
 
 def _looks_rate_limited(stdout, stderr, returncode):

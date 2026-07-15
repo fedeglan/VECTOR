@@ -123,6 +123,13 @@ def cmd_start(args):
     items = _phase_issues(ledger, args.phase)
     if not items:
         _die(f"no issues for phase {args.phase!r} in the ledger")
+    # R-STA-11: a FRESH start requires a clean phase — no state.json AND no run-set issue
+    # already advanced in the ledger. Otherwise resume (state) is the only safe entry.
+    unclean = [i["id"] for i in items if i.get("status", "queued") not in ("queued",)]
+    if unclean:
+        _die(f"phase not clean for a fresh start — these issues carry a non-queued "
+             f"ledger status: {', '.join(unclean)}. Resume from state.json, or reset "
+             f"the ledger deliberately.")
     _validate_dag(items, ledger)
     level = _effective_level(pol["autonomy_level"], args.level)
     st.fresh(items, level, args.phase or "default", pol["_fingerprint"])

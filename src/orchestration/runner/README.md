@@ -1,8 +1,59 @@
 # VECTOR relay-runner (Tier 2)
 
-> Deterministic Python. Built in **Phase B** against the executable specification in
-> `tests/fsm_sim.py` (validated pre-freeze, 8/8 scenarios). This README is the build
-> contract; the full behavioral spec is `../SPEC.md`.
+> Deterministic Python. **Built (Phase B, 2026-07-15)** against the executable
+> specification in `tests/fsm_sim.py` (8/8) and `../SPEC.md`. Status below.
+
+## Status — built and battery-proven
+The `vector_runner/` package is implemented and installs a real `vector-run` /
+`vector-revert` entry point (`pip install -e .`). Its control flow is **executed**, not
+asserted:
+- `tests/fsm_sim.py` — the original executable control-flow spec, **8/8** (untouched).
+- `tests/test_fsm_live.py` — the **same 8 scenarios run against the REAL runner** via
+  deterministic `claude`/`gh`/`git` shims (`tests/shims/`), **plus 22 live-behavior
+  scenarios** (real `SIGKILL` mid-build + state-only resume, HALT, sticky breaker,
+  identity/window/policy fail-fast, never-raise, CI-red budget sharing, change-scope
+  requeue, L0/L1 no-merge), **plus 9 red-team regressions** (the `F*` series) — **39/39**.
+- The parser reads the real pilot `POLICY.md`; the spawn contract was verified against
+  the real `claude` CLI (flags accepted, JSON envelope parsed).
+- **Adversarial red-team:** a 7-lens fan-out (16 agents) executed real attacks against
+  the runner; **9 confirmed violations were found and fixed** (crash-safe atomic merge,
+  per-issue wall budget for reviewer/CI, final-block-only exit parsing, PR-ownership
+  verification, fail-fast numeric POLICY, full escalation template, unclean-phase
+  refusal). Each is pinned by an `F*` regression in `test_fsm_live.py`.
+
+**Not yet exercised (honest):** a full loop with real `claude -p` *builder/reviewer*
+processes closing issues on a live repo — blocked only on (a) an **authenticated
+headless CLI** (`claude` in a fresh subprocess reports "Not logged in"; needs
+`claude setup-token` or `ANTHROPIC_API_KEY`) and (b) a **dedicated machine user** for
+autonomous merges under branch protection. Both are operator credential actions. The
+runbook below is turnkey once they exist.
+
+## Live-run runbook (operator)
+```bash
+# 0. one-time: authenticate the HEADLESS cli + (for L2) a dedicated machine user
+claude setup-token            # or: export ANTHROPIC_API_KEY=...   (headless builders need this)
+# create a GitHub machine user, gh auth login AS it, set POLICY merge.bot_identity to it
+
+# 1. install the runner
+pip install -e src/orchestration/runner
+
+# 2. add a phase slice to the project's .vector/issues.json, e.g. a clean + an ambiguous issue:
+#    {"id":"V101I1","phase":"v1","title":"Add GET /health/ready readiness probe (DB SELECT 1 -> 200
+#      {ready:true} else 503). Adds backend/tests/test_health.py. Touches no frozen spec.",
+#      "model":"sonnet","complexity":"low","deps":[]}
+#    {"id":"V101I2","phase":"v1","title":"Replace offset/limit with cursor pagination on GET /links",
+#      "note":"INTENTIONALLY UNDERSPECIFIED: no cursor encoding, tiebreaker, or api-spec change given
+#      — the correct outcome is a BLOCKED escalation, not a guess","model":"sonnet","deps":[]}
+
+# 3. run the phase (L1 = human merges each PR; L2 = autonomous merges via the machine user)
+vector-run --cwd <project> start --phase v1
+vector-run --cwd <project> status         # watch it
+# kill it any time (Ctrl-C / SIGKILL) and:
+vector-run --cwd <project> resume         # resumes from .vector/state.json alone
+
+# expected: V101I1 -> real PR opened under runner control -> reviewer -> (merge or human);
+#           V101I2 -> BLOCKED escalation in ESCALATIONS.md (the runner never guesses).
+```
 
 ## What it is
 The relay-runner is the deterministic engine of Act II. It spawns one fresh `claude -p`

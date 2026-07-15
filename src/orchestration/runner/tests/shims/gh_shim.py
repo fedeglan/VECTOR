@@ -38,6 +38,61 @@ def main():
         print(cfg.get("bot", "shim-bot"))
         return
 
+    merged_prs = set(sc.get("merged_prs", []))
+
+    if args[:2] == ["pr", "view"]:
+        pr = args[2]
+        fields = ""
+        for i, a in enumerate(args):
+            if a == "--json" and i + 1 < len(args):
+                fields = args[i + 1]
+        iid = sc["pr_map"].get(str(pr), "?")
+        state = "MERGED" if int(pr) in merged_prs or str(pr) in map(str, merged_prs) else "OPEN"
+        if "statusCheckRollup" in fields:
+            print(json.dumps({"statusCheckRollup": [
+                {"name": "ci-tests", "conclusion": "FAILURE",
+                 "detailsUrl": "https://shim/checks"}]}))
+            return
+        if "reviews" in fields:  # L1 human-merge poll
+            human = pop(sc, iid, "human", "APPROVED")
+            save(scpath, sc)
+            if human == "CHANGES_REQUESTED":
+                print(json.dumps({"state": "OPEN",
+                                  "reviews": [{"state": "CHANGES_REQUESTED"}]}))
+            else:
+                print(json.dumps({"state": "MERGED", "reviews": []}))
+            return
+        out = {}
+        if "number" in fields:
+            out["number"] = int(pr)
+        if "state" in fields:
+            out["state"] = state
+        if "baseRefName" in fields:
+            out["baseRefName"] = cfg.get("target", "DEV")
+        if "headRefName" in fields:
+            # honor a scenario override to forge a hostile head branch
+            out["headRefName"] = sc.get("pr_head", {}).get(str(pr), f"feat/{iid}")
+        if "author" in fields:
+            out["author"] = {"login": sc.get("pr_author", {}).get(str(pr), cfg.get("bot", "shim-bot"))}
+        if "headRefOid" in fields:
+            out["headRefOid"] = f"deadbeef{pr}"
+            out["headRepository"] = {"name": "repo"}
+            out["headRepositoryOwner"] = {"login": "shim"}
+        print(json.dumps(out))
+        return
+
+    if args[:2] == ["pr", "merge"]:
+        pr = args[2]
+        fail_prs = [str(x) for x in sc.get("merge_fail_prs", [])]
+        if sc.get("merge_fail") or str(pr) in fail_prs:   # forced GateError
+            sys.stderr.write("shim: pr merge blocked by branch protection\n")
+            sys.exit(1)
+        merged_prs.add(int(pr))
+        sc["merged_prs"] = sorted(merged_prs)
+        save(scpath, sc)
+        print("merged")
+        return
+
     if args[:2] == ["pr", "checks"]:
         pr = args[2]
         iid = sc["pr_map"].get(str(pr), "?")
@@ -50,41 +105,12 @@ def main():
         print(json.dumps(checks))
         return
 
-    if args[:2] == ["pr", "view"] and "statusCheckRollup" in " ".join(args):
-        print(json.dumps({"statusCheckRollup": [
-            {"name": "ci-tests", "conclusion": "FAILURE",
-             "detailsUrl": "https://shim/checks"}]}))
-        return
-
-    if args[:2] == ["pr", "view"] and "state,reviews" in " ".join(args):
-        pr = args[2]
-        iid = sc["pr_map"].get(str(pr), "?")
-        human = pop(sc, iid, "human", "APPROVED")
-        save(scpath, sc)
-        if human == "CHANGES_REQUESTED":
-            print(json.dumps({"state": "OPEN",
-                              "reviews": [{"state": "CHANGES_REQUESTED"}]}))
-        else:
-            print(json.dumps({"state": "MERGED", "reviews": []}))
-        return
-
-    if args[:2] == ["pr", "view"]:  # headRefOid etc.
-        pr = args[2]
-        print(json.dumps({"headRefOid": f"deadbeef{pr}",
-                          "headRepository": {"name": "repo"},
-                          "headRepositoryOwner": {"login": "shim"}}))
-        return
-
     if args[:2] == ["repo", "view"]:
         print("shim/repo")
         return
 
     if args[0] == "api" and args[1].startswith("repos/"):
         print("{}")  # status set
-        return
-
-    if args[:2] == ["pr", "merge"]:
-        print("merged")
         return
 
     if args[:2] == ["pr", "create"]:

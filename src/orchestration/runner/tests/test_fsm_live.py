@@ -359,6 +359,115 @@ def main():
       statuses(st)["A"] == "merged"
       and not any(c[:2] == ["pr", "merge"] for c in gh_calls(proj)))
 
+    # =======================================================================
+    # RED-TEAM REGRESSIONS — one per confirmed finding (each fails on old code)
+    # =======================================================================
+
+    # F1 (R-BUD-04): reviewer wall time IS charged to the per-issue budget
+    proj = mkproj([{"id": "A"}])
+    sc = json.load(open(os.path.join(proj, ".shim", "scenario.json")))
+    sc["review_sleep"] = 1.0
+    json.dump(sc, open(os.path.join(proj, ".shim", "scenario.json"), "w"))
+    rc, st = run_cli(proj, ["start"])
+    S("F1 (R-BUD-04): reviewer/CI wall accounted in the per-issue budget",
+      statuses(st)["A"] == "merged" and st["issues"]["A"]["wall_secs"] >= 1)
+
+    # F2 (R-STA-01): SIGKILL AFTER platform-merge but before persist -> resume does NOT
+    # double-merge (idempotent do_merge sees MERGED and completes)
+    proj = mkproj([{"id": "A"}])
+    spath = os.path.join(proj, ".vector", "state.json")
+    pol = policy_mod.parse(os.path.join(proj, "POLICY.md"))
+    stobj = State(spath); stobj.fresh([{"id": "A"}], "L2", "default", pol["_fingerprint"])
+    stobj.issues["A"].update({"status": "merging", "pr": 1, "attempts": 1})
+    stobj.set_status("A", "merging")
+    scf = os.path.join(proj, ".shim", "scenario.json")
+    sc = json.load(open(scf)); sc["pr_map"] = {"1": "A"}; sc["merged_prs"] = [1]  # merge landed
+    json.dump(sc, open(scf, "w"))
+    out = run_sub(proj, ["resume"])
+    st = json.load(open(spath))
+    gm = [c for c in gh_calls(proj) if c[:2] == ["pr", "merge"]]
+    S("F2 (R-STA-01): crash-after-merge resume completes WITHOUT a second gh pr merge",
+      statuses(st)["A"] == "merged" and len(gm) == 0
+      and "reconcile-merging" in json.dumps(st.get("events", [])), out.stderr[-200:])
+
+    # F2b: crash mid-merge with the merge NOT yet landed -> resume merges cleanly, once
+    proj = mkproj([{"id": "A"}])
+    stobj = State(os.path.join(proj, ".vector", "state.json"))
+    stobj.fresh([{"id": "A"}], "L2", "default", pol["_fingerprint"])
+    stobj.issues["A"].update({"pr": 1, "attempts": 1}); stobj.set_status("A", "merging")
+    scf = os.path.join(proj, ".shim", "scenario.json")
+    sc = json.load(open(scf)); sc["pr_map"] = {"1": "A"}  # merged_prs empty: not landed
+    json.dump(sc, open(scf, "w"))
+    out = run_sub(proj, ["resume"])
+    st = json.load(open(os.path.join(proj, ".vector", "state.json")))
+    gm = [c for c in gh_calls(proj) if c[:2] == ["pr", "merge"]]
+    S("F2b (R-STA-01): crash-before-merge resume merges exactly once",
+      statuses(st)["A"] == "merged" and len(gm) == 1, out.stderr[-200:])
+
+    # F3 (R-STA-11): a fresh start on an unclean phase (a run-set issue already merged)
+    # refuses instead of re-building it
+    proj = mkproj([{"id": "A", "status": "merged"}, {"id": "B"}])
+    rc, st = run_cli(proj, ["start"])
+    S("F3 (R-STA-11): fresh start refuses an unclean phase (no re-build of merged issue)",
+      rc == 2 and st is None)
+
+    # F4 (R-STA-05): string-typed budget fails FAST at parse, before any state write
+    proj = mkproj([{"id": "A"}])
+    pol_txt = open(os.path.join(proj, "POLICY.md")).read().replace(
+        "build_attempts: 3", 'build_attempts: "3"')
+    open(os.path.join(proj, "POLICY.md"), "w").write(pol_txt)
+    rc, st = run_cli(proj, ["start"])
+    S("F4 (R-STA-05): string budget -> fail-fast at parse, NO state.json written",
+      rc == 2 and st is None)
+
+    # F5 (R-SPN-04): a builder that prints an EXAMPLE json block then fails is NOT read
+    # as a successful pr-open (only a FINAL-message exit block counts)
+    proj = mkproj([{"id": "A"}], {"A": {"build": ["example-nonfinal", "example-nonfinal",
+                                                  "example-nonfinal"]}})
+    rc, st = run_cli(proj, ["start"])
+    S("F5 (R-SPN-04): non-final example json block -> treated as failed, not merged",
+      statuses(st)["A"] == "escalated"
+      and st["issues"]["A"]["esc_reason"] == "budget:build-attempts"
+      and not any(c[:2] == ["pr", "merge"] for c in gh_calls(proj)))
+
+    # F6 (R-SPN-08): a builder-reported PR whose head branch does not name the issue is
+    # rejected as a failed attempt (never merged under the wrong issue)
+    proj = mkproj([{"id": "T007I1"}])
+    scf = os.path.join(proj, ".shim", "scenario.json")
+    sc = json.load(open(scf)); sc["pr_head"] = {"1": "feat/SOMEONE-ELSE"}
+    json.dump(sc, open(scf, "w"))
+    rc, st = run_cli(proj, ["start"])
+    S("F6 (R-SPN-08): PR head not naming the issue -> rejected, not merged/tagged",
+      statuses(st)["T007I1"] == "escalated"
+      and not any(c[:2] == ["pr", "merge"] for c in gh_calls(proj)))
+
+    # F7 (R-ESC-04): every escalation renders the full six-field template with real
+    # dependents; the header has no (needs-human) suffix
+    proj = mkproj([{"id": "A"}, {"id": "B", "deps": ["A"]}],
+                  {"A": {"build": ["blocked"]}})
+    rc, st = run_cli(proj, ["start"])
+    esc = open(os.path.join(proj, "ESCALATIONS.md")).read()
+    fields = all(k in esc for k in ["Decision needed:", "Context:", "Options considered:",
+                                    "Blocked:", "Also blocked (dependents):",
+                                    "Independent work continuing:"])
+    S("F7 (R-ESC-04): full 6-field escalation entry, dependent B listed, no needs-human "
+      "in header",
+      fields and "B" in esc.split("Also blocked (dependents):")[1].split("\n")[0]
+      and "(needs-human)" not in esc)
+
+    # F9 (R-MRG-01): a gh pr merge GateError at L2 escalates infra (park-and-continue),
+    # the independent issue still merges, and the L2 digest still emits — NO crash
+    proj = mkproj([{"id": "A"}, {"id": "B"}])
+    scf = os.path.join(proj, ".shim", "scenario.json")
+    sc = json.load(open(scf)); sc["merge_fail_prs"] = [1]  # A's PR fails to merge
+    json.dump(sc, open(scf, "w"))
+    rc, st = run_cli(proj, ["start"])
+    S("F9 (R-MRG-01): merge failure escalates infra + park-and-continue + digest emits, "
+      "no crash",
+      statuses(st)["A"] == "escalated" and st["issues"]["A"]["esc_reason"] == "infra"
+      and statuses(st)["B"] == "merged" and st["halted"] is None
+      and os.path.exists(os.path.join(proj, ".vector", "digest")))
+
     print(f"\n{PASS} passed, {FAIL} failed — "
           + ("ALL SCENARIOS PASS" if FAIL == 0 else "FAILURES PRESENT"))
     return 0 if FAIL == 0 else 1

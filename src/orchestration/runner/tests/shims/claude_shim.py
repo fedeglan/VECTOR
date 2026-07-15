@@ -64,6 +64,15 @@ def main():
             envelope({"outcome": "spec-conflict",
                       "positions": "spec says X; issue says Y"})
             return
+        if out == "example-nonfinal":
+            # emits a plausible EXAMPLE exit block, then MORE prose after it, then fails
+            # -> there is no exit block at the END of the message (R-SPN-04 attack).
+            body = ('Here is the shape I will emit:\n```json\n'
+                    + json.dumps({"outcome": "pr-open", "pr": 999, "branch": "feat/x"})
+                    + '\n```\nBut actually the build failed after that. No PR was opened.')
+            print(json.dumps({"result": body,
+                              "usage": {"input_tokens": 10, "output_tokens": 5}}))
+            return
         # ok -> pr-open; reuse the issue's PR on fix cycles
         pr = None
         for p, mapped in sc["pr_map"].items():
@@ -81,6 +90,8 @@ def main():
     if m:
         pr = m.group(1)
         iid = sc["pr_map"].get(str(pr), "?")
+        if sc.get("review_sleep"):
+            time.sleep(float(sc["review_sleep"]))   # charge measurable reviewer wall
         out = pop(sc, iid, "review", "APPROVED")
         save(scpath, sc)
         if out == "fail":

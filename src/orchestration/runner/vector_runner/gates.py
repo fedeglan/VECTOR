@@ -115,20 +115,88 @@ def set_reviewer_approval(pr, cwd, success, summary=""):
         raise GateError(f"failed to set reviewer-approval: {err[-300:]}")
 
 
-def merge_pr(pr, iid, cwd, dev_branch, gh_issue=None):
-    """SPEC §2.3.6: merge, close issue, checkout DEV, annotated tag + PUSH the tag."""
+def verify_pr(pr, iid, cwd, target_branch, bot_identity):
+    """R-SPN-08: a builder-reported PR is trusted only if it genuinely belongs to this
+    issue — the PR exists, its base is the target (DEV) branch, its head branch names
+    this issue, and it was opened by the machine user. Returns (ok, reason)."""
+    rc, out, err = _gh(["pr", "view", str(pr), "--json",
+                        "number,baseRefName,headRefName,author,state"], cwd)
+    if rc != 0:
+        return False, f"PR {pr} not found: {err[-200:]}"
+    try:
+        d = json.loads(out)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return False, f"PR {pr} metadata unparseable"
+    if d.get("baseRefName") != target_branch:
+        return False, (f"PR {pr} base is {d.get('baseRefName')!r}, not the target "
+                       f"{target_branch!r}")
+    # head branch must reference this issue's T-number (feat/T007-… for T007I1)
+    tnum = iid.split("I")[0] if "I" in iid else iid
+    head = d.get("headRefName") or ""
+    if tnum.lower() not in head.lower():
+        return False, f"PR {pr} head {head!r} does not name issue {iid} ({tnum})"
+    author = (d.get("author") or {}).get("login")
+    if bot_identity and author and author != bot_identity:
+        return False, f"PR {pr} opened by {author!r}, not the machine user {bot_identity!r}"
+    return True, "ok"
+
+
+def pr_state(pr, cwd):
+    rc, out, _ = _gh(["pr", "view", str(pr), "--json", "state"], cwd)
+    if rc != 0:
+        return None
+    try:
+        return json.loads(out).get("state")
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return None
+
+
+def do_merge(pr, cwd, dev_branch):
+    """Merge if not already merged (idempotent — a resumed run must not double-merge).
+    Returns 'merged' | 'already'. Raises GateError only on a genuine merge failure."""
+    if pr_state(pr, cwd) == "MERGED":
+        _git(["checkout", dev_branch], cwd)
+        _git(["pull", "origin", dev_branch], cwd)
+        return "already"
     rc, out, err = _gh(["pr", "merge", str(pr), "--merge", "--delete-branch"], cwd)
     if rc != 0:
+        if pr_state(pr, cwd) == "MERGED":     # race: it merged despite the non-zero rc
+            _git(["checkout", dev_branch], cwd)
+            _git(["pull", "origin", dev_branch], cwd)
+            return "already"
         raise GateError(f"merge failed for PR {pr}: {err[-500:]}")
     _git(["checkout", dev_branch], cwd)
     _git(["pull", "origin", dev_branch], cwd)
+    return "merged"
+
+
+def close_issue(gh_issue, pr, cwd):
     if gh_issue:
         _gh(["issue", "close", str(gh_issue), "--reason", "completed",
              "--comment", f"Completed in PR #{pr}"], cwd)
+
+
+def tag_exists(tag, cwd):
+    proc = subprocess.run([GIT(), "tag", "-l", tag], cwd=cwd, capture_output=True,
+                          text=True)
+    return proc.returncode == 0 and tag in proc.stdout.split()
+
+
+def tag_merge(iid, pr, cwd):
+    """Annotated tag + PUSH (a rollback handle). Idempotent. Raises GateError on a
+    push failure — the caller keeps the (already-completed) merge and does NOT unwind."""
     tag = f"vector/{iid}"
-    _git(["tag", "-a", tag, "-m", f"merge {iid} (PR #{pr})"], cwd)
+    if not tag_exists(tag, cwd):
+        _git(["tag", "-a", tag, "-m", f"merge {iid} (PR #{pr})"], cwd)
     _git(["push", "origin", tag], cwd)  # an unpushed tag is not a rollback handle
     return tag
+
+
+def merge_pr(pr, iid, cwd, dev_branch, gh_issue=None):
+    """Convenience for the revert path (no write-ahead needed there): merge + tag."""
+    do_merge(pr, cwd, dev_branch)
+    close_issue(gh_issue, pr, cwd)
+    return tag_merge(iid, pr, cwd)
 
 
 def pr_merged_by_human(pr, cwd):
