@@ -43,6 +43,7 @@ gh pr merge <N> --merge --delete-branch
 git checkout DEV && git pull origin DEV
 gh issue close <issue> --reason completed --comment "Completed in PR #<N>"
 git tag -a vector/T<NNN>I<N> -m "merge T<NNN>I<N>"    # rollback handle
+git push origin vector/T<NNN>I<N>                     # MUST push — an unpushed tag is not a rollback handle
 ```
 
 ### 7. Log

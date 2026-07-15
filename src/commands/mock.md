@@ -33,5 +33,9 @@ This is the one rule that keeps the mock safe. The mock is **generated and dispo
 ## Exit — the gate
 The human confirms: **"I used the fake app and it is what I had in my head."** That confirmation is the gate. Only then does design proceed toward the freeze. If the human is not there yet, the divergences become spec fixes and you regenerate.
 
+**Persist the gate** — `mock/` is gitignored and disposable, so the passing gate must be recorded in a
+tracked file or `/vector:resume` cannot tell Step 9 is done. On confirmation, append a dated line to
+`docs/views.md` (which `/resume` already keys on): `## Mock gate — passed <ISO-date>`.
+
 ## Profile note
 For the `service-api` profile this command is N-A; the intent check moves to contract examples plus a generated API playground the human exercises instead.

@@ -73,11 +73,14 @@ echo 'export TELEGRAM_CHAT_ID=...'   >> ~/.zshrc && source ~/.zshrc
 One-way only. Recipients (single chat, list, or group) are set per project in `POLICY.md §12`.
 
 ### 8. Prove the gates work
-Run the hook batteries from the installed plugin's reference copy:
+Run the hook batteries from the installed plugin's reference copy. Resolve the plugin root first —
+`$CLAUDE_PLUGIN_ROOT` is set inside Claude Code; for the `make install` fallback, `cd` into the
+cloned `vector/` repo and use `.`:
 ```bash
-python3 <plugin>/src/orchestration/hooks/tests/redteam.py
-python3 <plugin>/src/orchestration/hooks/tests/redteam2.py
-python3 <plugin>/src/orchestration/hooks/tests/redteam3.py
+PLUGIN="${CLAUDE_PLUGIN_ROOT:-.}"
+python3 "$PLUGIN"/src/orchestration/hooks/tests/redteam.py
+python3 "$PLUGIN"/src/orchestration/hooks/tests/redteam2.py
+python3 "$PLUGIN"/src/orchestration/hooks/tests/redteam3.py
 ```
 All three must pass. This is the same battery every project re-runs in its own repo at Step 15 — a green result here proves the machine's Python and the hook logic are sound before any project depends on them.
 

@@ -75,6 +75,7 @@ mock/
 playground/
 .vector/state.json
 .vector/digest/
+.vector/change-scope-open
 
 # OS / IDE
 .DS_Store

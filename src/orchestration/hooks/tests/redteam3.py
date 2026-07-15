@@ -23,7 +23,17 @@ def pt(tool, cwd=ROOT, **ti):
         d["cwd"] = cwd
     return json.dumps(d)
 
+# For the /change-scope exception: a real project dir WITH the marker (edits permitted) and one
+# WITHOUT it (the normal state, edits blocked). The marker is what /change-scope opens and closes.
+import tempfile
+_CS_OPEN = tempfile.mkdtemp(); os.makedirs(os.path.join(_CS_OPEN, ".vector"), exist_ok=True)
+open(os.path.join(_CS_OPEN, ".vector", "change-scope-open"), "w").close()
+_CS_SHUT = tempfile.mkdtemp()
+
 CASES = [
+    # ---- 0. frozen_specs: the /change-scope sanctioned-mutation window ----
+    ("frozen_specs", pt("Edit", cwd=_CS_OPEN, file_path=f"{_CS_OPEN}/docs/api-spec.yaml", old_string="a", new_string="b"), 0, "change-scope window OPEN -> frozen edit ALLOWED"),
+    ("frozen_specs", pt("Edit", cwd=_CS_SHUT, file_path=f"{_CS_SHUT}/docs/api-spec.yaml", old_string="a", new_string="b"), 2, "no change-scope window -> frozen edit BLOCKED"),
     # ---- 1. frozen_specs: ABSOLUTE paths must BLOCK (the live-session vector) ----
     ("frozen_specs", pt("Edit",  file_path=f"{ROOT}/docs/api-spec.yaml", old_string="a", new_string="b"), 2, "Edit OpenAPI spec (ABS path)"),
     ("frozen_specs", pt("Write", file_path=f"{ROOT}/POLICY.md", content="autonomy_level: L3"), 2, "Agent self-raises autonomy_level in POLICY (ABS)"),

@@ -58,8 +58,13 @@ gh api repos/{owner}/{repo}/milestones -f title="V2"  -f due_on="<V2 end>T23:59:
 ```
 
 ### Step 3 — Project board
+Capture the project number (Step 4 needs it) and create the Start/End **DATE** fields — a fresh
+Projects v2 board has none, so writing dates without creating them fails. Needs the token's
+`project` scope (`gh auth refresh -s project` if missing).
 ```bash
-gh project create --owner @me --title "<Project> — Development" --format json
+PROJ=$(gh project create --owner @me --title "<Project> — Development" --format json --jq .number)
+gh project field-create "$PROJ" --owner @me --name "Start" --data-type DATE
+gh project field-create "$PROJ" --owner @me --name "End"   --data-type DATE
 # Status field options: Backlog / In Progress / In Review / Done (all issues start Backlog)
 ```
 
@@ -105,11 +110,13 @@ JSON
 The board must be provably consistent with `.vector/issues.json`. Assert, do not eyeball:
 ```bash
 LEDGER=$(python3 -c "import json;print(len(json.load(open('.vector/issues.json'))['issues']))")
-CREATED=$(gh issue list --state all --json number --jq length)
+# --limit is REQUIRED: gh issue list defaults to 30, so without it CREATED caps at 30 and this
+# assert aborts on any real multi-phase project (>30 issues) even when the board is correct.
+CREATED=$(gh issue list --state all --limit 10000 --json number --jq length)
 [ "$LEDGER" = "$CREATED" ] || { echo "ABORT: ledger has $LEDGER issues, GitHub has $CREATED"; exit 1; }
 for p in mvp v1 v2; do
   L=$(python3 -c "import json;print(sum(1 for i in json.load(open('.vector/issues.json'))['issues'] if i['phase']=='$p'))")
-  G=$(gh issue list --label "phase:$p" --state all --json number --jq length)
+  G=$(gh issue list --label "phase:$p" --state all --limit 10000 --json number --jq length)
   [ "$L" = "$G" ] || echo "PHASE MISMATCH $p: ledger $L vs GitHub $G"
 done
 # Branch protection is actually on, with all six contexts:

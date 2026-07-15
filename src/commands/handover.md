@@ -55,11 +55,17 @@ cp <plugin>/src/templates/workflows/*.yml .github/workflows/
 - **Initialize the coverage baseline** so `coverage-ratchet` has something to ratchet against:
   ```bash
   pytest backend/tests --cov=backend --cov-report=xml -q || true
-  python3 .github/scripts/coverage_ratchet.py --coverage-xml coverage.xml \
-    --baseline .vector/coverage-baseline --set-baseline
+  if [ -f coverage.xml ]; then
+    python3 .github/scripts/coverage_ratchet.py --coverage-xml coverage.xml \
+      --baseline .vector/coverage-baseline --set-baseline
+  else
+    mkdir -p .vector && echo "0.0" > .vector/coverage-baseline   # no suite yet — seed a floor; the
+  fi                                                             # coverage-ratchet job raises it as tests land
   ```
-  (For an empty MVP suite the baseline starts at whatever the initial coverage is; it only ever
-  ratchets up.)
+  The baseline **must** be a committed file from the first commit (the CI `coverage-ratchet` job reads
+  it and fails if it is missing). At handover there is usually no test suite yet, so it seeds at `0.0`
+  and only ever ratchets up — **raise it deliberately** (`--set-baseline` locally, then commit) once the
+  suite carries real coverage, or the ratchet stays toothless at `0.0`.
 
 > `reviewer-approval` is **not** a workflow — it is a status check set by `/review-pr` / the
 > relay-runner via the bot identity. `/bootstrap-github` still requires it in branch protection.
@@ -86,9 +92,10 @@ Generate the deterministic-ops scaffolding so production is bind-not-build later
 test -f CLAUDE.md && test -f docker-compose.test.yml && test -f CODEOWNERS || echo "MISSING core handover file"
 ls .github/workflows/*.yml && ls .github/scripts/coverage_ratchet.py .github/scripts/test_protection_ci.py
 grep -L '{{HUMAN_GITHUB_USER}}' CODEOWNERS >/dev/null || echo "CODEOWNERS still has an unreplaced placeholder"
-python3 -c "import glob,sys; req={'ci-tests','conformance','security','coverage-ratchet','test-protection'}; \
-import re; names={re.search(r'^name:\s*(\S+)',open(f).read(),re.M).group(1) for f in glob.glob('.github/workflows/*.yml')}; \
-missing=req-names; print('workflow check names:',sorted(names)); assert not missing, ('missing workflows: %s'%missing)"
+python3 -c "import glob,yaml; req={'ci-tests','conformance','security','coverage-ratchet','test-protection'}; \
+ctx=set(); [ctx.update((j.get('name') or k) for k,j in yaml.safe_load(open(f))['jobs'].items()) for f in glob.glob('.github/workflows/*.yml')]; \
+missing=req-ctx; print('check-run contexts (the names branch protection requires):',sorted(ctx)); \
+assert not missing, ('missing required checks: %s'%missing)"
 ```
 
 ### 6. Report to the human

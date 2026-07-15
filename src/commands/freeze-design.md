@@ -25,7 +25,7 @@ Then parse it once to confirm it is valid (fail-fast): the runner will refuse to
 Copy the approved Step-4 renders to `baselines/`. These become the Explorer's visual oracle — they must be the exact renders the human approved.
 
 ### 4. Walk the freeze checklist
-Confirm: specs cross-consistent (endpoints ↔ reference ↔ views; migrations ↔ ERD), no orphan endpoints, no unresolved `[NEEDS CLARIFICATION]` markers in frozen-track files.
+Confirm: specs cross-consistent (endpoints ↔ reference ↔ views; migrations ↔ ERD), no orphan endpoints, no unresolved `[NEEDS CLARIFICATION]` markers in frozen-track files. **Assert the frozen YAML actually parses** — "YAML is the source of truth" only if it loads: `python3 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in ['docs/api-spec.yaml','docs/api-frontend-reference.yaml']]"` must exit 0. (An unquoted `{id}` in an inline flow-mapping, e.g. `path: /links/{id}/tags`, silently makes the file invalid YAML; quote such values.)
 
 ### 5. Tag
 ```bash

@@ -22,7 +22,16 @@ Present this to the human. A scope change with an unexamined blast radius is how
 The human approves the change and its impact. Do not proceed on your own judgment — this is a frozen-spec edit, the one thing the whole method is built to make deliberate.
 
 ### 4. Apply — through the freeze, not around it
-- Update the frozen artifact(s). (You are authorized here; this is the sanctioned path the hooks make an exception for — via the freeze-marker update, not a direct unguarded edit.)
+- **Open the sanctioned mutation window**, edit, then close it — the `frozen_specs` hook blocks
+  frozen-spec edits at all other times, so this is the one exception and it must be explicit:
+  ```bash
+  mkdir -p .vector && touch .vector/change-scope-open   # the hook now permits frozen-spec edits
+  # ... update the frozen artifact(s) ...
+  rm -f .vector/change-scope-open                        # close it immediately — never leave it open
+  ```
+  The window is narrow by design and CODEOWNERS still requires the human's review on the frozen
+  paths at merge time (defense in depth). Never leave `.vector/change-scope-open` committed or
+  lingering — it is a transient control, not a config file (it is gitignored by `/new-project`).
 - Update the freeze marker / `method_version` context and re-tag if the change is material.
 - Regenerate or amend the affected issues in `GITHUB_ISSUES.md` and `issues.json`.
 - If the mock still exists and the change is UI-facing, regenerate it (never hand-edit).

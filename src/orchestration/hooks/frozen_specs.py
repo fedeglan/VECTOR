@@ -40,12 +40,24 @@ def is_frozen(path, root):
         return False
     return any(fnmatch.fnmatch(rel, pat) or rel == pat for pat in FROZEN)
 
+def change_scope_open(root):
+    """/change-scope opens the ONE sanctioned mutation window by creating this marker; it removes
+    it when done. While open, frozen-spec edits are permitted here — and are still gated at merge
+    time by CODEOWNERS review on the frozen paths (defense in depth). Without the marker (the normal
+    state, and every red-team payload), frozen specs remain uneditable."""
+    try:
+        return os.path.exists(os.path.join(root, ".vector", "change-scope-open"))
+    except Exception:
+        return False
+
 def main():
     try:
         data = json.load(sys.stdin)
     except Exception:
         sys.exit(0)                         # unparseable payload: do not obstruct (never crash to exit 1)
     root = project_root(data)
+    if change_scope_open(root):
+        sys.exit(0)                         # sanctioned /change-scope window open; CODEOWNERS backstops the merge
     tool = data.get("tool_name", "")
     ti = data.get("tool_input", {}) or {}
     if tool in ("Edit", "Write", "MultiEdit", "NotebookEdit"):
