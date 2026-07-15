@@ -20,6 +20,114 @@ The core rule is unchanged from v1, now enforced instead of trusted: **the spec 
 
 ---
 
+## How it works — a plain-language walkthrough
+
+*New here, and not a programmer? Start with this. It explains the whole idea with no jargon.*
+
+### The one-sentence version
+
+You take an idea for an app, decide exactly what it should look like and do, then hand the **building** to an AI that works on its own — while automatic **guardrails** make it impossible for that AI to cut corners, cheat on tests, or quietly change your plan.
+
+### Three roles, and who does what
+
+Think of a small construction project with three characters:
+
+- **🧑 You — the architect.** You decide *what* gets built: the screens, the rules, what "done" means. This is the part no automation replaces, and VECTOR front-loads it.
+- **🤖 The machine — the builder.** Once the design is locked, an AI does the actual construction — writing the code and its tests, one ticket at a time, on its own.
+- **🚧 The gates — the building inspector who never sleeps.** Automatic checks that sit between the builder and the finished wall. The builder physically cannot get past them if it tries to change the sealed blueprint, remove a safety test, or use materials nobody approved. No trust required — it's mechanical.
+
+The magic isn't that the AI is brilliant. It's that **the AI is boxed in by rules it cannot break**, so you can let it work unattended and still trust the result.
+
+### The journey, as a picture
+
+```mermaid
+flowchart TD
+    Idea(["💡 What you have in your head"]) --> ActI
+
+    subgraph ActI["🎨 ACT I — DESIGN · you decide, the AI assists"]
+        S1["✏️ 1. Sketch the screens by hand"] --> S2["📝 2. Describe what it does<br/>(the AI interviews you to fill gaps)"]
+        S2 --> S3["🖼️ 3. Draw and style every screen"]
+        S3 --> Gate1{{"👤 GATE 1 — Does it look right?"}}
+        Gate1 --> S4["🕹️ 4. Click through a fake, working version"]
+        S4 --> Gate2{{"👤 GATE 2 — Is this what I pictured?"}}
+        Gate2 --> S5["🧊 5. FREEZE the design"]
+        S5 --> Gate3{{"👤 GATE 3 — Sign the blueprint"}}
+        Gate3 --> S6["🎫 6. Split into tickets and install the guardrails"]
+        S6 --> Gate4{{"👤 GATE 4 — Cleared for build"}}
+    end
+
+    ActI --> ActII
+
+    subgraph ActII["🤖 ACT II — BUILD · the machine works, the guardrails keep it honest"]
+        B1["Pick the next ticket"] --> B2["Write the code and its tests"]
+        B2 --> B3[["🚧 GUARDRAILS check every action —<br/>can't change the blueprint ·<br/>can't delete or weaken a test ·<br/>can't sneak in new dependencies"]]
+        B3 --> B4["A second, independent AI reviews the work"]
+        B4 --> B5["Merge — only if every check is green"]
+        B5 -->|"repeat, ticket by ticket"| B1
+    end
+
+    ActII --> ActIII
+
+    subgraph ActIII["🚀 ACT III — SHIP AND RUN"]
+        P1["Deploy to a practice copy and test it"] --> Gate5{{"👤 GATE 5 — Final GO?"}}
+        Gate5 --> P2["Release to the real world"]
+        P2 --> P3["Runs live, watched cheaply<br/>(one-step undo if something breaks)"]
+    end
+
+    ActIII --> Done(["✅ A real app, running in production"])
+```
+
+The **👤 diamonds are the only five moments that need you** once building starts. Everything else the machine handles — or, if it hits something genuinely unclear, it *stops and asks* rather than guessing.
+
+### Step by step, in order
+
+**Act I — Design (you lead; this is where your judgment lives).**
+
+1. **Sketch.** Draw the screens on paper and photograph them. Rough is fine — it's raw material to react to.
+2. **Describe + interview.** You write down what the app is for and who uses it; the AI asks pointed questions to expose anything vague. Unanswered questions are left as visible flags, never quietly guessed.
+3. **Design the screens.** Each screen is drawn at full fidelity and styled, and shown in a real browser so you can approve exactly what you see. **← 👤 Gate 1.**
+4. **Try a fake version.** The AI generates a *clickable prototype* — a working-looking fake app wired to pretend data — so you can walk through it as if it were real. Anything that feels wrong gets fixed in the plan now, when fixing it costs minutes. **← 👤 Gate 2.**
+5. **Freeze.** You seal the design. From this moment the plan is a **contract**: it can only change through one deliberate, tracked procedure — never on a whim, never silently. **← 👤 Gate 3.**
+6. **Prepare the build.** The AI turns the plan into a list of small tickets (each with a precise "done" test) and installs the guardrails into the project as files. You give the final go-ahead to start building. **← 👤 Gate 4.**
+
+**Act II — Build (the machine leads; you can look away).**
+
+7. The builder AI takes one ticket, writes the code and the tests for it, and opens it for review.
+8. **The guardrails run on every keystroke and every merge.** They refuse any attempt to edit the frozen blueprint, delete or hollow out a test, or add an unapproved dependency.
+9. A **second, independent** AI reviews the work with fresh eyes (it never sees the first AI's reasoning, so it doesn't inherit its blind spots).
+10. The work merges **only if every automatic check passes.** Then the builder picks up the next ticket. This repeats, unattended, through the whole phase.
+
+**Act III — Ship and run (shared).**
+
+11. The finished version is deployed to a **practice copy** ("staging") and tested there first.
+12. **You give the final GO** — the single human sign-off before real users see it. **← 👤 Gate 5.**
+13. It goes live, is monitored with cheap automatic rules (not an expensive AI watching 24/7), and can be **rolled back in one step** if anything misbehaves.
+
+### The two-layer install, explained simply
+
+There are two separate things, and keeping them straight is the whole trick:
+
+- **The method** installs once on your computer, as a plugin. Think of it as **a set of power tools** — it gives you the commands (`/vector:new-project`, `/vector:run-phase`, …).
+- **The contract** is created fresh **inside each project**, as real files that live in that project's folder. Think of it as **the building code stapled to that specific job site.**
+
+Why separate them? Because a rule that lives in *your* toolbox can't protect a *project*. The guardrails have to be committed files inside the project itself, so that anyone who opens that project — even without VECTOR installed — is still protected by them. **The plugin gives you the verbs; the project holds the contract.**
+
+### How much you let it drive — the autonomy dial
+
+You choose how much freedom the machine gets, like levels of cruise control, and you **earn** your way up as it proves itself:
+
+- **L0 / L1** — you review and approve every change (the machine's reviewer runs quietly alongside, building a track record).
+- **L2** — the machine merges on its own, and you get a ~20-minute daily digest with a one-click undo.
+- **L3** — full autonomy; you only hear about decisions and finished phases.
+
+The dial is **only ever turned up by you**, never by the machine.
+
+### Why you can trust it
+
+Two promises do the heavy lifting. First, **it never guesses:** when the plan is unclear, the machine stops and asks you rather than inventing an answer — so ambiguity surfaces as a question, not as a silent wrong turn. Second, **the rules are mechanical, not polite requests:** the guardrails are enforced by the tools themselves, so "please don't change the blueprint" becomes "you *can't* change the blueprint." And whatever you build, you keep — every project is an ordinary, standard codebase that any team can take over later, with or without VECTOR.
+
+---
+
 ## The autonomy dial
 
 Set per project in `POLICY.md`; raised only by the human, never by the loop.
