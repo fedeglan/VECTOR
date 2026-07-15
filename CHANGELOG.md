@@ -31,6 +31,7 @@ The autonomous release: v1 froze the design; v2 makes the frozen design executab
 
 ### Validation
 - Pre-freeze executable validation: hooks 47/47 across two red-team rounds (residual gaps mapped to named downstream nets); runner state machine 8/8 scenarios including kill/resume identity and shadow-mode semantics; POLICY parseability and cross-document consistency audited (7 findings resolved at freeze). Design council-audited twice (amendments A1–A4, B1–B5 integrated).
+- Post-freeze empirical pilot (`vector-pilot-linksaver`, service-api): Act I → phase close, then the **full `/promote` pipeline** on a real (local) deploy target — staging → smoke → human GO → prod verify → **rollback recovered** — and the **Act III ops-pack** (UGC-sanitizer, Tier-D rules evaluator, SQLite backup/restore, maintenance mode; 36 tests green, each adversarially verified). The promote smoke (schemathesis vs the **live** `/openapi.json`) caught 6 real contract defects and correctly blocked promotion — the gate working — fixed via code-in-line + one `/change-scope`, re-smoke 668/668. Remaining before claiming Phase E/F: a *real remote* deploy target and multi-project operating time. See `docs/audits/2026-07-15-pilot-run.md` (Addendum 3) and DECISIONS §6.
 
 ### Fixed — implementation hardening (2026-07-15, post-freeze; definition unchanged)
 See `docs/audits/2026-07-15-repo-audit.md` for the full audit, evidence, and escalations.

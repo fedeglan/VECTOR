@@ -129,3 +129,20 @@ playing the human at every gate) validated the machinery and surfaced two findin
   branch protection after any visibility or plan change** — and the "CODEOWNERS backstops frozen
   paths" guarantee holds only while protection is actually applied (verified: with protection active,
   a frozen-path PR is correctly `BLOCKED` for a single identity; with it dropped, it merges CLEAN).
+- **Code↔spec drift hides from the static-spec check; the promote smoke against the *live*
+  `/openapi.json` caught it.** Exercising `/promote` end-to-end on a local deploy target (2026-07-15),
+  the Step-18 smoke ran schemathesis against the running app's `/openapi.json` and found **6 real
+  contract defects** the earlier "schemathesis green" (run against the hand-authored `api-spec.yaml`)
+  had missed: Pydantic models lacking the spec's `pattern`/`maxLength`, a hand-rolled
+  `422 {detail: "string"}` violating the documented `ValidationError` array shape, and undocumented
+  404/409. Fixed code-in-line + one `/change-scope` (re-smoke 668/668). **Method refinement:** the
+  phase-close Explorer — not only the promote smoke — must run against the live `/openapi.json` with
+  `-c all`, and CI should assert `live-openapi ⊇ api-spec constraints` once code exists. Folding a
+  *documented* status into a check's expected set (e.g. 409 for POST /tags) is contract-alignment, not
+  gate-weakening (independently confirmed at the GO gate).
+- **Act III is buildable and testable pre-production — bind-not-build confirmed.** The ops-pack
+  (UGC-sanitizer, Tier-D rules evaluator, SQLite backup/restore, maintenance mode) was built and tested
+  green (36 tests) on the pilot without a live prod, and a full `/promote` — staging → smoke → human
+  GO → prod verify → **rollback recovered** — ran on a local deploy target with the ops-journal
+  recording each event. Phase E/F machinery is now exercised; what remains before claiming them is a
+  *real remote* target (network/TLS/reboot) and multi-project operating time.
