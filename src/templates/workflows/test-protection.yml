@@ -1,0 +1,25 @@
+# VECTOR required check: test-protection  (merge-time layer — stack-agnostic)
+# Diff-based detector of test deletions/skips/weakening (whole-file overwrites, early-return
+# neutering, mv-rename-out) — the residuals the edit-time PreToolUse hook cannot see. Fails
+# unless a signed TEST-CHANGE-JUSTIFICATION block is present in the PR or a commit message.
+# Uses .github/scripts/test_protection_ci.py, copied from src/orchestration/ci/ by /handover.
+name: test-protection
+on:
+  pull_request:
+    branches: [DEV]
+jobs:
+  test-protection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Diff-based test-protection
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          git diff --unified=0 "origin/${{ github.base_ref }}...HEAD" \
+            | python3 .github/scripts/test_protection_ci.py \
+                --justification-from-git "origin/${{ github.base_ref }}..HEAD"

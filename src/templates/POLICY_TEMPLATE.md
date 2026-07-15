@@ -215,7 +215,7 @@ operations:
   backup: {rpo: 24h, retention: 30d, restore_rehearsal: phase-close}
   tier_l_enabled: false
   degradation_default: maintenance-banner + read-only
-  ugc: never enters agent context raw — sanitizer chain per docs/STEP19_OPERATE_EVOLVE.md
+  ugc: never enters agent context raw — sanitizer chain per docs/OPERATIONS.md
 ```
 
 ## 15. Invariants (no tier may override these)

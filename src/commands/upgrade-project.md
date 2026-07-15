@@ -15,7 +15,7 @@ Read the project's specs and `CONTEXT.md`. Identify: the frozen-track artifacts 
 Create it with the human (autonomy level, budgets, breakers, deploy target, notify recipients, `method_version` pin). Recommend starting at **L1** for a retrofitted project regardless of the author's usual default — the shadow-mode telemetry has to be earned on this codebase.
 
 ### 3. Install the enforcement layer (files only)
-- `.claude/hooks/` — the three hooks + `hooks.json` wiring in `.claude/settings.json`, plus the deny-rules for frozen paths.
+- `.claude/hooks/` — the three hooks + `hooks.json` wiring in `.claude/settings.json` (no read-side deny-rules: writes are hooked, reads must stay open for the reviewer).
 - `.github/workflows/` — ci-tests, conformance (endpoints↔OpenAPI, migrations↔ERD), security, coverage-ratchet, test-protection.
 - `CODEOWNERS` on the frozen paths + `POLICY.md` (never on `tests/**`).
 - `.vector/` skeleton, `ESCALATIONS.md`, the ops-pack skeleton.

@@ -1,0 +1,32 @@
+# VECTOR required check: conformance  (webapp reference stack — /handover adapts; not universal)
+# The code must conform to the FROZEN specs: endpoints<->OpenAPI, migrations<->ERD, architecture rules.
+name: conformance
+on:
+  pull_request:
+    branches: [DEV]
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install tooling (pinned)
+        run: pip install -r backend/requirements.txt schemathesis import-linter
+      - name: Boot the app (hermetic compose)
+        run: docker compose -f docker-compose.test.yml up -d --wait
+      # endpoints conform to the frozen OpenAPI — no orphan/missing endpoints, schemas match
+      - name: schemathesis (endpoints <-> docs/api-spec.yaml)
+        run: schemathesis run docs/api-spec.yaml --base-url http://localhost:8000 --checks all
+      # migrations produce exactly the frozen ERD.
+      # PROJECT-PROVIDED STEP: apply migrations to a scratch DB, dump the schema, diff it against
+      # docs/erd.dbml. There is no universal tool; /handover wires this to the project's stack
+      # (e.g. alembic upgrade head + a dbml diff). Left explicit rather than faked.
+      - name: migrations <-> ERD (project-provided)
+        run: |
+          if [ -x .github/scripts/erd_diff.sh ]; then .github/scripts/erd_diff.sh; \
+          else echo "::error::migrations<->ERD check not wired — /handover must provide .github/scripts/erd_diff.sh"; exit 1; fi
+      # layering: no business logic in routers, DB access only through the repository layer
+      - name: import-linter (architecture contracts)
+        run: lint-imports --config importlinter.ini

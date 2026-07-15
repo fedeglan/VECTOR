@@ -12,6 +12,6 @@
       }
     ]
   },
-  "_deny_rules_note": "Also add permissions.deny entries for the frozen paths to close the @-reference read gap, e.g. 'Read(./docs/api-spec.yaml)' is allowed but Edit/Write are blocked by the hook; the deny list prevents @-file inclusion from being used to smuggle edits. See ORCHESTRATION SPEC 3.3.",
+  "_reads_note": "No read-side permissions.deny on frozen paths. The threat model is WRITES; Edit/Write/MultiEdit/Bash are all hooked regardless of how a file entered context (an @-reference only reads). Denying reads would block the reviewer and builder, who must read the specs to check conformance, and would close nothing. See ORCHESTRATION SPEC 3.1.",
   "_builder_note": "Builder invocations additionally pass --disallowedTools WebFetch,WebSearch (never rely on --allowedTools under bypassPermissions; it is ignored)."
 }

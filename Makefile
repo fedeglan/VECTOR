@@ -50,6 +50,9 @@ test:
 	@echo "== Hook red-team, round 3 (hardening regressions: absolute paths, compound installs, bare-dir deletes) =="
 	@cd src/orchestration/hooks/tests && python3 redteam3.py
 	@echo ""
+	@echo "== CI nets red-team (coverage-ratchet + diff-based test-protection) =="
+	@python3 src/orchestration/ci/tests/redteam_ci.py
+	@echo ""
 	@echo "== Runner FSM specification =="
 	@python3 src/orchestration/runner/tests/fsm_sim.py
 

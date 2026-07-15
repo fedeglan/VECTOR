@@ -51,6 +51,35 @@ See `docs/audits/2026-07-15-repo-audit.md` for the full audit, evidence, and esc
   `promote`/`preflight-audit`. New `redteam3.py` hardening battery wired into `make test`
   (the historical 47/47 across rounds 1–2 is preserved unchanged).
 
+### Added — Act I completion + the merge-time gates (2026-07-15, post-freeze; definition unchanged)
+The frozen method fully specified Steps 12–14 and the CI half of Tier 3, but no command
+conducted them and the CI checks existed only as prose (audit finding H4). Now implemented:
+- **`/generate-issues` (Step 12)** — derives `docs/GITHUB_ISSUES.md` + `.vector/issues.json`
+  (self-contained issues with executable `verification:` blocks, labels, an acyclic DAG).
+- **`/handover` (Step 13)** — the classic handover plus the merge-time enforcement layer as
+  files (CI workflows, `CODEOWNERS`, the CI scripts) and the ops-pack.
+- **`/bootstrap-github` rewritten for Step 14** — was v1-pure; now adds the `needs-human` /
+  `escalated` labels, DEV branch protection with the six required checks, machine-user identity
+  verification, and self-verifying asserts against the ledger.
+- **The two logic nets as real code** — `src/orchestration/ci/coverage_ratchet.py` and
+  `test_protection_ci.py` (diff-based), each with an executed red-team battery
+  (`redteam_ci.py`, 18/18, in `make test`). They catch the edit-time hooks' documented
+  residuals (whole-file test overwrites, early-return neutering, mv-rename-out). This makes
+  "defense in depth is a verified property, not rhetoric" (SPEC §3.1) true rather than asserted.
+- **CI + CODEOWNERS templates** — `src/templates/workflows/` (ci-tests, conformance, security,
+  coverage-ratchet, test-protection) + `src/templates/CODEOWNERS`, webapp reference-stack,
+  adapted per project by `/handover`.
+Command count 26 → 28.
+
+### Changed — definition coherence via /change-scope (2026-07-15)
+First exercise of the method's own change-scope discipline on its frozen definition (see
+`docs/change-scope/2026-07-15-definition-coherence.md`). No `method_version` bump (pre-release
+coherence): profile token canonicalized to `service-api` in `VECTOR.md`; the dead
+`STEP19_OPERATE_EVOLVE.md` pointer in `POLICY_TEMPLATE.md` repointed to `OPERATIONS.md`; the
+`@`-reference read-deny guidance removed from `SPEC.md`/`VECTOR.md` (the threat model is writes,
+which are hooked regardless of how a file entered context; the deny blocked legitimate reviewer
+reads and closed nothing).
+
 ### Not yet shipped
 - **The Tier-2 relay-runner** is the Phase B deliverable. 2.0.0 ships its build contract and its executable specification (`src/orchestration/runner/tests/fsm_sim.py`). Until it lands, Act I and the Tier-3 gates are fully usable and Act II runs at L0/L1 — human-driven `/ship-issue`, with the gates enforcing the contract underneath.
 - Profiles `cli/library` and `quant-pipeline` (2.x). Step 19's reference implementation binds at the first real deploy (Phase F); the spec is complete.

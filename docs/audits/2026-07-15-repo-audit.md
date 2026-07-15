@@ -175,6 +175,22 @@ frozen file or author new method, the decision is raised as a question, not reso
 
 ---
 
+### Resolution of the escalations (2026-07-15, same day, on branch `v2-enforcement`)
+
+All four were subsequently approved by the author and resolved:
+1. **Steps 12–14 + CI (H4):** implemented as new commands `/generate-issues` (Step 12) and
+   `/handover` (Step 13), and `/bootstrap-github` rewritten for Step 14 (real branch protection,
+   escalation labels, machine-user verification, ledger asserts). The two named CI nets
+   (`coverage-ratchet`, diff-based `test-protection`) shipped as real code in
+   `src/orchestration/ci/` with an executed 18/18 battery; workflow + CODEOWNERS templates in
+   `src/templates/`.
+2. **Profile token (M1):** canonical = `service-api`; `VECTOR.md` corrected.
+3. **STEP19 pointer (L1):** repointed to `docs/OPERATIONS.md`.
+4. **Read-deny guidance (L7):** removed from `SPEC.md`/`VECTOR.md`/`hooks.json`/commands.
+
+Items 2–4 were applied through the method's own `/change-scope` discipline —
+`docs/change-scope/2026-07-15-definition-coherence.md`.
+
 ## What could NOT be tested (and why) — no manufactured green checkmarks
 
 - **The gates inside a genuine interactive Claude Code session.** This environment is

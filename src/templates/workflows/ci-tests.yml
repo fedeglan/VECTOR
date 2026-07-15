@@ -1,0 +1,37 @@
+# VECTOR required check: ci-tests  (webapp reference stack — /handover adapts; not universal)
+# The test pyramid. Job name == the required-check name registered in branch protection.
+name: ci-tests
+on:
+  pull_request:
+    branches: [DEV]
+jobs:
+  ci-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install backend (pinned — deps-guard-frozen lockfile)
+        run: pip install -r backend/requirements.txt
+      - name: Backend tests (unit -> integration)
+        run: pytest backend/tests -q
+      # --- frontend: drop this block for the service-api profile ---
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend (pinned lockfile)
+        run: npm ci --prefix frontend
+      - name: Frontend tests
+        run: npm --prefix frontend test -- --run
